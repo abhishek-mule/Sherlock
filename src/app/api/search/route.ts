@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -31,14 +31,14 @@ export async function GET(request: NextRequest) {
     if (query) {
       whereConditions.push({
         OR: [
-          { fullName: { contains: query, mode: 'insensitive' } },
-          { enrollmentNumber: { contains: query, mode: 'insensitive' } },
-          { registrationNo: { contains: query, mode: 'insensitive' } },
-          { rollNumber: { contains: query, mode: 'insensitive' } },
-          { emailId: { contains: query, mode: 'insensitive' } },
-          { mobileNumber: { contains: query, mode: 'insensitive' } },
-          { fatherName: { contains: query, mode: 'insensitive' } },
-          { motherName: { contains: query, mode: 'insensitive' } }
+          { fullName: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { enrollmentNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { registrationNo: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { rollNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { emailId: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { mobileNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { fatherName: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { motherName: { contains: query, mode: Prisma.QueryMode.insensitive } }
         ]
       });
     }
@@ -47,9 +47,9 @@ export async function GET(request: NextRequest) {
     if (surname) {
       whereConditions.push({
         OR: [
-          { fullName: { contains: surname, mode: 'insensitive' } },
-          { lastName: { contains: surname, mode: 'insensitive' } },
-          { fatherLastName: { contains: surname, mode: 'insensitive' } }
+          { fullName: { contains: surname, mode: Prisma.QueryMode.insensitive } },
+          { lastName: { contains: surname, mode: Prisma.QueryMode.insensitive } },
+          { fatherLastName: { contains: surname, mode: Prisma.QueryMode.insensitive } }
         ]
       });
     }

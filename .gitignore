@@ -36,9 +36,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Allow student data files to be committed
-!/public/data/students.csv
-!/data/students.csv
+# Exclude student data files (containing sensitive information)
+/public/data/students.csv
+/data/students.csv
 
 # Exclude all database files
 *.db
