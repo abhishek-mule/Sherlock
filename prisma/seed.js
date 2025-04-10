@@ -6,14 +6,25 @@ const { parse } = require('csv-parse/sync');
 
 const prisma = new PrismaClient();
 
+// Environment flag to force reseeding (useful for development/testing)
+const FORCE_RESEED = process.env.FORCE_RESEED === 'true';
+
 async function main() {
   console.log('Seeding database...');
   
   // Check if students already exist
   const studentCount = await prisma.student.count();
-  if (studentCount > 0) {
+  if (studentCount > 0 && !FORCE_RESEED) {
     console.log(`Database already contains ${studentCount} students. Skipping seed.`);
+    console.log('To force reseeding, set FORCE_RESEED=true');
     return;
+  }
+  
+  // If FORCE_RESEED is true and students exist, delete them first
+  if (studentCount > 0 && FORCE_RESEED) {
+    console.log(`Deleting ${studentCount} existing students for reseeding...`);
+    await prisma.student.deleteMany({});
+    console.log('Existing students deleted.');
   }
   
   // Load student data from CSV
@@ -33,10 +44,12 @@ async function main() {
   
   console.log(`Parsed ${records.length} student records from CSV`);
   
-  // Process and insert the first 5 student records for testing
-  const sampleRecords = records.slice(0, 5);
+  // Process and insert all student records, not just 5
+  const totalRecords = records;
+  let successCount = 0;
+  let errorCount = 0;
   
-  for (const record of sampleRecords) {
+  for (const record of totalRecords) {
     // Format the data to match the Student model
     const student = {
       srNo: record['SRNO'] || null,
@@ -136,13 +149,18 @@ async function main() {
     
     try {
       await prisma.student.create({ data: student });
-      console.log(`Created student: ${student.fullName}`);
+      successCount++;
+      // Log progress every 5 students
+      if (successCount % 5 === 0) {
+        console.log(`Created ${successCount} students so far...`);
+      }
     } catch (error) {
       console.error(`Error creating student ${student.fullName}:`, error);
+      errorCount++;
     }
   }
   
-  console.log('Database seeding completed');
+  console.log(`Database seeding completed. Created ${successCount} students. Errors: ${errorCount}`);
 }
 
 main()

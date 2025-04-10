@@ -11,7 +11,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:push": "prisma db push",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "db:reseed": "cross-env FORCE_RESEED=true node prisma/seed.js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",
@@ -32,6 +33,7 @@
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.0.1",
+    "cross-env": "^7.0.3",
     "dotenv-cli": "^8.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.28",
