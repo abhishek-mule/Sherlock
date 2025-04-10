@@ -1,0 +1,145 @@
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "sqlite" // Using SQLite for immediate development
+  url       = env("DATABASE_URL")
+}
+
+model Student {
+  id                    Int       @id @default(autoincrement())
+  srNo                  String?
+  registrationNo        String?
+  enrollmentNumber      String?   @unique
+  rollNumber            String?
+  fullName              String
+  firstName             String?
+  middleName            String?
+  lastName              String?
+  mobileNumber          String?
+  alternateMobileNumber String?
+  emailId               String?
+  alternateEmailId      String?
+  address               String?
+  city                  String?
+  gender                String?
+  nationality           String?
+  bloodGroup            String?
+  physicallyHandicapped Boolean?  @default(false)
+  religion              String?
+  category              String?
+  subcategory           String?
+  admissionType         String?
+  aadharNumber          String?
+  abcIdNumber           String?
+  passportNumber        String?
+  maritalStatus         String?
+  
+  // Father's Information
+  fatherName            String?
+  fatherFirstName       String?
+  fatherLastName        String?
+  fatherMobileNumber    String?
+  fatherAlternateMobile String?
+  fatherOfficePhone     String?
+  fatherOccupation      String?
+  fatherQualification   String?
+  fatherAnnualIncome    String?
+  
+  // Mother's Information
+  motherName            String?
+  motherMobileNumber    String?
+  motherOccupation      String?
+  motherQualification   String?
+  
+  // Category Information
+  castCategory          String?
+  
+  // Permanent Address
+  permanentAddressLine  String?
+  permanentDistrict     String?
+  permanentCity         String?
+  permanentState        String?
+  permanentCountry      String?
+  permanentLandline     String?
+  permanentPostOffice   String?
+  permanentPoliceStation String?
+  permanentPincode      String?
+  
+  // Local Address
+  localAddressLine      String?
+  localDistrict         String?
+  localCity             String?
+  localState            String?
+  localCountry          String?
+  localLandline         String?
+  localPostOffice       String?
+  localPoliceStation    String?
+  localPincode          String?
+  
+  // Guardian Information
+  guardianName          String?
+  guardianContactNo     String?
+  relationWithGuardian  String?
+  guardianOccupation    String?
+  guardianQualification String?
+  
+  // Academic Information
+  admissionDate         DateTime? 
+  programLevel          String?
+  degree                String?
+  branch                String?
+  medium                String?
+  academicYear          String?
+  currentYear           Int?
+  currentSemester       Int?
+  admissionCategory     String?
+  
+  // Previous Education Information
+  // 10th Details
+  tenthSchoolName       String?
+  tenthBoard            String?
+  tenthYear             String?
+  tenthMedium           String?
+  tenthMarks            Float?
+  tenthTotalMarks       Float?
+  tenthPercentage       Float?
+  tenthCertificateNo    String?
+  
+  // 12th Details
+  twelfthSchoolName     String?
+  twelfthBoard          String?
+  twelfthYear           String?
+  twelfthMedium         String?
+  twelfthCertificateNo  String?
+  
+  // Subject Marks in 12th
+  physicsMarks          Float?
+  physicsTotalMarks     Float?
+  chemistryMarks        Float?
+  chemistryTotalMarks   Float?
+  mathsMarks            Float?
+  mathsTotalMarks       Float?
+  totalPCMMarks         Float?
+  pcmPercentage         Float?
+  twelfthStream         String?
+  twelfthSubjectMarks   Float?
+  twelfthSubjectTotal   Float?
+  twelfthTotalMarks     Float?
+  twelfthTotalOutOf     Float?
+  twelfthPercentage     Float?
+  
+  // Additional Fields
+  collegeName           String?
+  bankAccountNumber     String?
+  remarks               String?
+  status                String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("students")
+} 

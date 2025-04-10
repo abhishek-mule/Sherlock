@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="logoGradient">
+      <stop stop-color="#4F46E5" offset="0%"></stop>
+      <stop stop-color="#3B82F6" offset="100%"></stop>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"></feGaussianBlur>
+      <feOffset in="blur" dx="2" dy="2" result="offsetBlur"></feOffset>
+      <feFlood flood-color="#000000" flood-opacity="0.3" result="offsetColor"></feFlood>
+      <feComposite in="offsetColor" in2="offsetBlur" operator="in" result="offsetBlur"></feComposite>
+      <feMerge>
+        <feMergeNode in="offsetBlur"></feMergeNode>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+      </feMerge>
+    </filter>
+  </defs>
+  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <circle fill="url(#logoGradient)" cx="100" cy="100" r="90"></circle>
+    <g transform="translate(45, 40)" fill="#FFFFFF" filter="url(#shadow)">
+      <!-- Magnifying Glass -->
+      <circle cx="50" cy="50" r="35" stroke="#FFFFFF" stroke-width="6" fill-opacity="0.1"></circle>
+      <rect transform="rotate(45, 85, 80)" x="78" y="50" width="14" height="60" rx="7"></rect>
+      
+      <!-- S letter in the glass -->
+      <path d="M60,40 C60,32 52,32 50,32 C44,32 40,36 40,40 C40,48 60,48 60,56 C60,62 54,66 50,66 C42,66 40,60 40,56" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" fill="none"></path>
+    </g>
+    
+    <!-- Decorative elements -->
+    <circle fill="#FFFFFF" fill-opacity="0.2" cx="70" cy="70" r="5"></circle>
+    <circle fill="#FFFFFF" fill-opacity="0.2" cx="130" cy="60" r="3"></circle>
+    <circle fill="#FFFFFF" fill-opacity="0.2" cx="120" cy="130" r="4"></circle>
+    <path d="M160,110 Q170,130 150,140" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="2" fill="none"></path>
+  </g>
+</svg> 
