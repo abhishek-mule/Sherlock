@@ -26,34 +26,23 @@ export default function HomePage() {
 
   useEffect(() => {
     const loadStudents = async () => {
+      setIsLoading(true);
       try {
         // First try to load from the API route
-        let csvText;
+        console.log("Attempting to load student data from API...");
         
-        try {
-          // Try to use the API route first
-          const apiResponse = await fetch('/api/data', {
-            headers: {
-              'x-api-key': process.env.NEXT_PUBLIC_API_KEY || 'development-key' // Fallback key for development
-            }
-          });
-          
-          if (!apiResponse.ok) {
-            throw new Error(`API error! status: ${apiResponse.status}`);
-          }
-          
-          csvText = await apiResponse.text();
-        } catch (apiError) {
-          console.warn('API route failed, falling back to static file:', apiError);
-          
-          // Fallback to static file if API fails
-          const fallbackResponse = await fetch('/data/students.csv');
-          if (!fallbackResponse.ok) {
-            throw new Error(`HTTP error! status: ${fallbackResponse.status}`);
-          }
-          csvText = await fallbackResponse.text();
+        // Try to use the API route first (without authentication)
+        const apiResponse = await fetch('/api/data');
+        
+        if (!apiResponse.ok) {
+          throw new Error(`API error! status: ${apiResponse.status}`);
         }
         
+        console.log("Successfully fetched data from API");
+        const csvText = await apiResponse.text();
+        
+        // Parse the CSV data
+        console.log("Parsing CSV data...");
         const records = parse(csvText, {
           columns: true,
           skip_empty_lines: true,
