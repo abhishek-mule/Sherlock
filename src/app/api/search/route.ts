@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
 
-// Initialize Prisma client
-const prisma = new PrismaClient();
+// Don't initialize Prisma at the module level for build
+// Instead, create a function to get the Prisma client
+function getPrismaClient() {
+  return new PrismaClient();
+}
 
 export async function GET(request: NextRequest) {
+  const prisma = getPrismaClient();
+  
   try {
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -24,71 +29,84 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // Build the search query
-    const queryConditions = [];
-    
-    if (query) {
-      queryConditions.push(
-        Prisma.sql`(
-          "fullName" ILIKE ${`%${query}%`} OR
-          "enrollmentNumber" ILIKE ${`%${query}%`} OR
-          "registrationNo" ILIKE ${`%${query}%`} OR
-          "registrationNumber" ILIKE ${`%${query}%`} OR
-          "rollNumber" ILIKE ${`%${query}%`} OR
-          "emailId" ILIKE ${`%${query}%`} OR
-          "alternateEmailId" ILIKE ${`%${query}%`} OR
-          "mobileNumber" ILIKE ${`%${query}%`} OR
-          "alternateMobileNumber" ILIKE ${`%${query}%`} OR
-          "studentMobileNo2" ILIKE ${`%${query}%`} OR
-          "fatherName" ILIKE ${`%${query}%`} OR
-          "motherName" ILIKE ${`%${query}%`} OR
-          "abcIdNumber" ILIKE ${`%${query}%`} OR
-          "firstName" ILIKE ${`%${query}%`} OR
-          "middleName" ILIKE ${`%${query}%`} OR
-          "lastName" ILIKE ${`%${query}%`} OR
-          "aadharNumber" ILIKE ${`%${query}%`}
-        )`
-      );
+    try {
+      // Build the search query
+      const queryConditions = [];
+      
+      if (query) {
+        queryConditions.push(
+          Prisma.sql`(
+            "fullName" ILIKE ${`%${query}%`} OR
+            "enrollmentNumber" ILIKE ${`%${query}%`} OR
+            "registrationNo" ILIKE ${`%${query}%`} OR
+            "registrationNumber" ILIKE ${`%${query}%`} OR
+            "rollNumber" ILIKE ${`%${query}%`} OR
+            "emailId" ILIKE ${`%${query}%`} OR
+            "alternateEmailId" ILIKE ${`%${query}%`} OR
+            "mobileNumber" ILIKE ${`%${query}%`} OR
+            "alternateMobileNumber" ILIKE ${`%${query}%`} OR
+            "studentMobileNo2" ILIKE ${`%${query}%`} OR
+            "fatherName" ILIKE ${`%${query}%`} OR
+            "motherName" ILIKE ${`%${query}%`} OR
+            "abcIdNumber" ILIKE ${`%${query}%`} OR
+            "firstName" ILIKE ${`%${query}%`} OR
+            "middleName" ILIKE ${`%${query}%`} OR
+            "lastName" ILIKE ${`%${query}%`} OR
+            "aadharNumber" ILIKE ${`%${query}%`}
+          )`
+        );
+      }
+      
+      if (surname) {
+        queryConditions.push(
+          Prisma.sql`(
+            "fullName" ILIKE ${`%${surname}%`} OR
+            "lastName" ILIKE ${`%${surname}%`} OR
+            "fatherLastName" ILIKE ${`%${surname}%`}
+          )`
+        );
+      }
+      
+      // Combine all conditions
+      const whereClause = queryConditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(queryConditions, ' AND ')}`
+        : Prisma.empty;
+      
+      // Get total count for pagination
+      const totalResult = await prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(*) as count FROM "Student" ${whereClause}
+      `;
+      const totalCount = Number(totalResult[0].count);
+      
+      // Get matching records
+      const students = await prisma.$queryRaw<any[]>`
+        SELECT * FROM "Student" 
+        ${whereClause}
+        ORDER BY "fullName" ASC
+        LIMIT ${limit} OFFSET ${skip}
+      `;
+      
+      // Log for debugging
+      console.log(`Search for "${query}" found ${students.length} results`);
+      
+      return NextResponse.json({
+        total: totalCount,
+        page,
+        limit,
+        data: students
+      });
+    } catch (dbError) {
+      console.error('Database error in search:', dbError);
+      
+      // Fallback for search with no database access
+      return NextResponse.json({
+        total: 0,
+        page,
+        limit,
+        data: [],
+        message: "Database search unavailable. Please try again later."
+      });
     }
-    
-    if (surname) {
-      queryConditions.push(
-        Prisma.sql`(
-          "fullName" ILIKE ${`%${surname}%`} OR
-          "lastName" ILIKE ${`%${surname}%`} OR
-          "fatherLastName" ILIKE ${`%${surname}%`}
-        )`
-      );
-    }
-    
-    // Combine all conditions
-    const whereClause = queryConditions.length > 0
-      ? Prisma.sql`WHERE ${Prisma.join(queryConditions, ' AND ')}`
-      : Prisma.empty;
-    
-    // Get total count for pagination
-    const totalResult = await prisma.$queryRaw<[{ count: bigint }]>`
-      SELECT COUNT(*) as count FROM "Student" ${whereClause}
-    `;
-    const totalCount = Number(totalResult[0].count);
-    
-    // Get matching records
-    const students = await prisma.$queryRaw<any[]>`
-      SELECT * FROM "Student" 
-      ${whereClause}
-      ORDER BY "fullName" ASC
-      LIMIT ${limit} OFFSET ${skip}
-    `;
-    
-    // Log for debugging
-    console.log(`Search for "${query}" found ${students.length} results`);
-    
-    return NextResponse.json({
-      total: totalCount,
-      page,
-      limit,
-      data: students
-    });
   } catch (error) {
     console.error('Error searching student data:', error);
     return NextResponse.json(

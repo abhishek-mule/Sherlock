@@ -3,10 +3,15 @@ import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 
-// Initialize Prisma client
-const prisma = new PrismaClient();
+// Don't initialize Prisma at the module level for build
+// Instead, create a function to get the Prisma client
+function getPrismaClient() {
+  return new PrismaClient();
+}
 
 export async function GET(request: NextRequest) {
+  const prisma = getPrismaClient();
+  
   try {
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -51,30 +56,40 @@ export async function GET(request: NextRequest) {
     } catch (dbError) {
       console.error('Database error:', dbError);
       
-      // Fallback to CSV if database fails
+      // Fallback to CSV if database fails - only in runtime, not during build
       console.warn('Database connection failed, falling back to CSV file');
       
-      // Path to the CSV file in the private data directory
-      const filePath = path.join(process.cwd(), 'data', 'students.csv');
-      
-      // Check if file exists
-      if (!fs.existsSync(filePath)) {
-        return NextResponse.json(
-          { error: 'Student data not found' },
-          { status: 404 }
-        );
-      }
-      
-      // Return the CSV file directly with CORS headers
-      const fileContents = fs.readFileSync(filePath, 'utf8');
-      return new NextResponse(fileContents, {
-        headers: {
-          'Content-Type': 'text/csv',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+      try {
+        // Only try to access the file system at runtime
+        // Path to the CSV file in the private data directory
+        const filePath = path.join(process.cwd(), 'data', 'students.csv');
+        
+        // Check if file exists
+        if (!fs.existsSync(filePath)) {
+          throw new Error('CSV file not found');
         }
-      });
+        
+        // Return the CSV file directly with CORS headers
+        const fileContents = fs.readFileSync(filePath, 'utf8');
+        return new NextResponse(fileContents, {
+          headers: {
+            'Content-Type': 'text/csv',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+          }
+        });
+      } catch (fsError) {
+        console.error('File system error:', fsError);
+        // Return fallback data if both database and file system fail
+        return NextResponse.json({
+          total: 0,
+          page,
+          limit,
+          data: [],
+          message: "Could not load student data. Both database and file fallback failed."
+        }, { status: 500 });
+      }
     }
   } catch (error) {
     console.error('Error fetching student data:', error);
