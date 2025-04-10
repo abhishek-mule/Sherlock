@@ -24,62 +24,61 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // Build where conditions for Prisma
-    const whereConditions = [];
+    // Build the search query
+    const queryConditions = [];
     
-    // If query exists, search in multiple fields
     if (query) {
-      whereConditions.push({
-        OR: [
-          { fullName: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { enrollmentNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { registrationNo: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { registrationNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { rollNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { emailId: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { alternateEmailId: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { mobileNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { alternateMobileNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { studentMobileNo2: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { fatherName: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { motherName: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { abcIdNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { firstName: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { middleName: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { lastName: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { aadharNumber: { contains: query, mode: Prisma.QueryMode.insensitive } }
-        ]
-      });
+      queryConditions.push(
+        Prisma.sql`(
+          "fullName" ILIKE ${`%${query}%`} OR
+          "enrollmentNumber" ILIKE ${`%${query}%`} OR
+          "registrationNo" ILIKE ${`%${query}%`} OR
+          "registrationNumber" ILIKE ${`%${query}%`} OR
+          "rollNumber" ILIKE ${`%${query}%`} OR
+          "emailId" ILIKE ${`%${query}%`} OR
+          "alternateEmailId" ILIKE ${`%${query}%`} OR
+          "mobileNumber" ILIKE ${`%${query}%`} OR
+          "alternateMobileNumber" ILIKE ${`%${query}%`} OR
+          "studentMobileNo2" ILIKE ${`%${query}%`} OR
+          "fatherName" ILIKE ${`%${query}%`} OR
+          "motherName" ILIKE ${`%${query}%`} OR
+          "abcIdNumber" ILIKE ${`%${query}%`} OR
+          "firstName" ILIKE ${`%${query}%`} OR
+          "middleName" ILIKE ${`%${query}%`} OR
+          "lastName" ILIKE ${`%${query}%`} OR
+          "aadharNumber" ILIKE ${`%${query}%`}
+        )`
+      );
     }
     
-    // If surname exists, add it to the search conditions
     if (surname) {
-      whereConditions.push({
-        OR: [
-          { fullName: { contains: surname, mode: Prisma.QueryMode.insensitive } },
-          { lastName: { contains: surname, mode: Prisma.QueryMode.insensitive } },
-          { fatherLastName: { contains: surname, mode: Prisma.QueryMode.insensitive } }
-        ]
-      });
+      queryConditions.push(
+        Prisma.sql`(
+          "fullName" ILIKE ${`%${surname}%`} OR
+          "lastName" ILIKE ${`%${surname}%`} OR
+          "fatherLastName" ILIKE ${`%${surname}%`}
+        )`
+      );
     }
     
-    // Combine all conditions with AND
-    const where = whereConditions.length > 0 
-      ? { AND: whereConditions }
-      : {};
+    // Combine all conditions
+    const whereClause = queryConditions.length > 0
+      ? Prisma.sql`WHERE ${Prisma.join(queryConditions, ' AND ')}`
+      : Prisma.empty;
     
     // Get total count for pagination
-    const totalCount = await prisma.student.count({ where });
+    const totalResult = await prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(*) as count FROM "Student" ${whereClause}
+    `;
+    const totalCount = Number(totalResult[0].count);
     
     // Get matching records
-    const students = await prisma.student.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: {
-        fullName: 'asc',
-      },
-    });
+    const students = await prisma.$queryRaw<any[]>`
+      SELECT * FROM "Student" 
+      ${whereClause}
+      ORDER BY "fullName" ASC
+      LIMIT ${limit} OFFSET ${skip}
+    `;
     
     // Log for debugging
     console.log(`Search for "${query}" found ${students.length} results`);
