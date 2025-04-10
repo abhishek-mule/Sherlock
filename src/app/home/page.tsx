@@ -27,11 +27,32 @@ export default function HomePage() {
   useEffect(() => {
     const loadStudents = async () => {
       try {
-        const response = await fetch('/data/students.csv');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // First try to load from the API route
+        let csvText;
+        
+        try {
+          // Try to use the API route first
+          const apiResponse = await fetch('/api/data', {
+            headers: {
+              'x-api-key': process.env.NEXT_PUBLIC_API_KEY || 'development-key' // Fallback key for development
+            }
+          });
+          
+          if (!apiResponse.ok) {
+            throw new Error(`API error! status: ${apiResponse.status}`);
+          }
+          
+          csvText = await apiResponse.text();
+        } catch (apiError) {
+          console.warn('API route failed, falling back to static file:', apiError);
+          
+          // Fallback to static file if API fails
+          const fallbackResponse = await fetch('/data/students.csv');
+          if (!fallbackResponse.ok) {
+            throw new Error(`HTTP error! status: ${fallbackResponse.status}`);
+          }
+          csvText = await fallbackResponse.text();
         }
-        const csvText = await response.text();
         
         const records = parse(csvText, {
           columns: true,

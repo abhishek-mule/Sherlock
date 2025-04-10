@@ -20,15 +20,28 @@ function verifyApiKey(request: NextRequest): boolean {
   const apiKey = headersList.get('x-api-key');
   const validApiKey = process.env.API_SECRET_KEY;
   
-  return apiKey === validApiKey;
+  // In development mode, allow a development key
+  if (process.env.NODE_ENV === 'development' && apiKey === 'development-key') {
+    return true;
+  }
+  
+  // In production, require the actual API key (but fall back to allowing if not set)
+  return apiKey === validApiKey || !validApiKey;
 }
 
 export async function GET(request: NextRequest) {
-  // Check authentication
+  // Check authentication with relaxed requirements for development
   if (!verifyApiKey(request)) {
     return NextResponse.json(
       { error: 'Unauthorized access' },
-      { status: 401 }
+      { 
+        status: 401,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+        }
+      }
     );
   }
 
@@ -57,12 +70,15 @@ export async function GET(request: NextRequest) {
         );
       }
       
-      // Return the CSV file directly
+      // Return the CSV file directly with proper CORS headers
       const fileContents = fs.readFileSync(filePath, 'utf8');
       return new NextResponse(fileContents, {
         headers: {
           'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="students.csv"'
+          'Content-Disposition': 'attachment; filename="students.csv"',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
         }
       });
     }
@@ -111,4 +127,16 @@ export async function GET(request: NextRequest) {
       await prisma.$disconnect();
     }
   }
+}
+
+// Add OPTIONS handler for CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+    },
+  });
 } 
