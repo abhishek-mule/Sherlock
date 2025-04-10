@@ -82,12 +82,12 @@ export default function Home() {
             </div>
             <p className="text-lg md:text-xl text-blue-100">
               Access, manage, and analyze student data with unprecedented ease. 
-              Sherlock brings intelligence to education management.
+              Sherlock brings intelligence to education management with PostgreSQL database integration.
             </p>
             <div className="flex flex-wrap gap-3 md:gap-4">
-              {['Real-time Analytics', 'Secure Data', 'Intelligent Search', 'Performance Tracking'].map((feature) => (
-                <div key={feature} className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm md:text-base flex items-center">
-                  <div className="w-2 h-2 bg-blue-200 rounded-full mr-2"></div>
+              {['PostgreSQL Database', 'Real-time Analytics', 'Secure Data', 'Intelligent Search', 'Performance Tracking'].map((feature) => (
+                <div key={feature} className={`px-4 py-2 ${feature === 'PostgreSQL Database' ? 'bg-blue-500/30' : 'bg-white/10'} backdrop-blur-sm rounded-full text-sm md:text-base flex items-center`}>
+                  <div className={`w-2 h-2 ${feature === 'PostgreSQL Database' ? 'bg-blue-300' : 'bg-blue-200'} rounded-full mr-2`}></div>
                   <span>{feature}</span>
                 </div>
               ))}

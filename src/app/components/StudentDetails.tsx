@@ -8,6 +8,36 @@ interface StudentDetailsProps {
   student: StudentInfo | null;
 }
 
+// Helper function to create a permanent address object from flat fields
+const getPermanentAddress = (student: any) => {
+  return {
+    addressLine: student.permanentAddressLine || '',
+    village: student.permanentVillage || '',
+    taluka: student.permanentTaluka || '',
+    district: student.permanentDistrict || '',
+    state: student.permanentState || '',
+    landlineNo: student.permanentLandline || '',
+    areaPostOffice: student.permanentPostOffice || '',
+    areaPoliceStation: student.permanentPoliceStation || '',
+    pinCode: student.permanentPincode || '',
+  };
+};
+
+// Helper function to create a local address object from flat fields
+const getLocalAddress = (student: any) => {
+  return {
+    addressLine: student.localAddressLine || '',
+    village: student.localVillage || '',
+    taluka: student.localTaluka || '',
+    district: student.localDistrict || '',
+    state: student.localState || '',
+    landlineNo: student.localLandline || '',
+    areaPostOffice: student.localPostOffice || '',
+    areaPoliceStation: student.localPoliceStation || '',
+    pinCode: student.localPincode || '',
+  };
+};
+
 export function StudentDetails({ student }: StudentDetailsProps) {
   const [isOsintOpen, setIsOsintOpen] = useState(false);
   const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(false);
@@ -42,6 +72,12 @@ export function StudentDetails({ student }: StudentDetailsProps) {
     // Show error message if not 12 digits
     return `${aadharInt} (Invalid: must be 12 digits)`;
   };
+
+  // Create address objects from flat fields if needed
+  const permanentAddress = student.permanentAddress || getPermanentAddress(student);
+  const localAddress = student.localAddress || getLocalAddress(student);
+  
+  // Now we have address objects whether the data came in flat or nested form
 
   const sections = [
     {
@@ -281,45 +317,45 @@ export function StudentDetails({ student }: StudentDetailsProps) {
           <div className="space-y-2 bg-white dark:bg-gray-600 p-3 rounded-lg">
             <h4 className="font-medium text-gray-900 dark:text-white">Permanent Address</h4>
             <address className="not-italic text-gray-800 dark:text-gray-100 space-y-1">
-              {student.permanentAddress.addressLine && <p>{student.permanentAddress.addressLine}</p>}
-              {student.permanentAddress.village && <p>{student.permanentAddress.village}</p>}
-              {(student.permanentAddress.taluka || student.permanentAddress.district) && (
+              {permanentAddress.addressLine && <p>{permanentAddress.addressLine}</p>}
+              {permanentAddress.village && <p>{permanentAddress.village}</p>}
+              {(permanentAddress.taluka || permanentAddress.district) && (
                 <p>
-                  {student.permanentAddress.taluka && `${student.permanentAddress.taluka}, `} 
-                  {student.permanentAddress.district}
+                  {permanentAddress.taluka && `${permanentAddress.taluka}, `} 
+                  {permanentAddress.district}
                 </p>
               )}
-              {(student.permanentAddress.state || student.permanentAddress.pinCode) && (
+              {(permanentAddress.state || permanentAddress.pinCode) && (
                 <p>
-                  {student.permanentAddress.state} 
-                  {student.permanentAddress.pinCode && ` - ${student.permanentAddress.pinCode}`}
+                  {permanentAddress.state} 
+                  {permanentAddress.pinCode && ` - ${permanentAddress.pinCode}`}
                 </p>
               )}
-              {student.permanentAddress.landlineNo && <p>Landline: {student.permanentAddress.landlineNo}</p>}
-              {student.permanentAddress.areaPostOffice && <p>Post Office: {student.permanentAddress.areaPostOffice}</p>}
-              {student.permanentAddress.areaPoliceStation && <p>Police Station: {student.permanentAddress.areaPoliceStation}</p>}
+              {permanentAddress.landlineNo && <p>Landline: {permanentAddress.landlineNo}</p>}
+              {permanentAddress.areaPostOffice && <p>Post Office: {permanentAddress.areaPostOffice}</p>}
+              {permanentAddress.areaPoliceStation && <p>Police Station: {permanentAddress.areaPoliceStation}</p>}
             </address>
           </div>
           <div className="space-y-2 bg-white dark:bg-gray-600 p-3 rounded-lg">
             <h4 className="font-medium text-gray-900 dark:text-white">Local Address</h4>
             <address className="not-italic text-gray-800 dark:text-gray-100 space-y-1">
-              {student.localAddress.addressLine && <p>{student.localAddress.addressLine}</p>}
-              {student.localAddress.village && <p>{student.localAddress.village}</p>}
-              {(student.localAddress.taluka || student.localAddress.district) && (
+              {localAddress.addressLine && <p>{localAddress.addressLine}</p>}
+              {localAddress.village && <p>{localAddress.village}</p>}
+              {(localAddress.taluka || localAddress.district) && (
                 <p>
-                  {student.localAddress.taluka && `${student.localAddress.taluka}, `} 
-                  {student.localAddress.district}
+                  {localAddress.taluka && `${localAddress.taluka}, `} 
+                  {localAddress.district}
                 </p>
               )}
-              {(student.localAddress.state || student.localAddress.pinCode) && (
+              {(localAddress.state || localAddress.pinCode) && (
                 <p>
-                  {student.localAddress.state} 
-                  {student.localAddress.pinCode && ` - ${student.localAddress.pinCode}`}
+                  {localAddress.state} 
+                  {localAddress.pinCode && ` - ${localAddress.pinCode}`}
                 </p>
               )}
-              {student.localAddress.landlineNo && <p>Landline: {student.localAddress.landlineNo}</p>}
-              {student.localAddress.areaPostOffice && <p>Post Office: {student.localAddress.areaPostOffice}</p>}
-              {student.localAddress.areaPoliceStation && <p>Police Station: {student.localAddress.areaPoliceStation}</p>}
+              {localAddress.landlineNo && <p>Landline: {localAddress.landlineNo}</p>}
+              {localAddress.areaPostOffice && <p>Post Office: {localAddress.areaPostOffice}</p>}
+              {localAddress.areaPoliceStation && <p>Police Station: {localAddress.areaPoliceStation}</p>}
             </address>
           </div>
         </div>

@@ -1,16 +1,18 @@
 'use client';
 
-import { Search, Bell, User, Menu } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { parse } from 'csv-parse/sync';
+import { toast } from 'react-hot-toast';
+import { Menu, Bell, User, Search } from 'lucide-react';
+
 import { StudentInfo } from '../types/student';
 import { StudentDetails } from '../components/StudentDetails';
-import { parse } from 'csv-parse/sync';
+import { StudentListPopup } from '../components/StudentListPopup';
+import { NotificationsPopup } from '../components/NotificationsPopup';
 import { SettingsMenu } from '../components/SettingsMenu';
 import { Tooltip } from '../components/Tooltip';
-import { LoadingSpinner } from '../components/LoadingSpinner';
-import toast from 'react-hot-toast';
-import { StudentListPopup } from '../components/StudentListPopup';
-import { NotificationsPanel } from '../components/NotificationsPanel';
+import { StudentSearch } from '../components/StudentSearch';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 // Fallback data as a constant to ensure data availability
 const FALLBACK_DATA = `SRNO,REGISTRATION_NO,ENROLLMENT NUMBER,ROLLNO,NAME,FIRSTNAME,MIDDLE NAME,LAST NAME,MOBILE NO.,EMAILID,DOB,GENDER,FATHERNAME,FATHERMOBILE
@@ -18,10 +20,7 @@ const FALLBACK_DATA = `SRNO,REGISTRATION_NO,ENROLLMENT NUMBER,ROLLNO,NAME,FIRSTN
 2,REG20230002,ENRL20230002,ROLL002,Jane Demo Doe,Jane,Demo,Doe,9876543212,jane.doe@example.com,2001-05-20,Female,Michael Doe,9876543213`;
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [surname, setSurname] = useState('');
   const [studentData, setStudentData] = useState<StudentInfo | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
   const [students, setStudents] = useState<StudentInfo[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,39 +100,40 @@ export default function HomePage() {
             isHosteller: record['HOSTELLER'] === 'YES',
             areBothParentsAlive: record['IS PARENTS ALIVE'] === 'YES',
             fatherMobileNumber: record['FATHERMOBILE'] || '',
-            motherMobileNumber: record['MOTHERMOBILE'] || '',
-            fatherQualification: record["FATHER'S QUALIFICATION"] || '',
             fatherOccupation: record["FATHER'S OCCUPATION"] || '',
-            fatherEmail: record['FATHER EMAIL'] || '',
-            annualFamilyIncome: record['ANNUAL FAMILY INCOME'] || '',
-            motherQualification: record["MOTHER'S QUALIFICATION"] || '',
+            fatherQualification: record["FATHER'S QUALIFICATION"] || '',
+            motherMobileNumber: record['MOTHERMOBILE'] || '',
             motherOccupation: record["MOTHER'S OCCUPATION"] || '',
-            motherEmail: record['MOTHER EMAIL'] || '',
-            motherOfficePhone: record["MOTHER'S OFFICE PHONE NO"] || '',
-            socialCategory: record['SOCIAL CATEGORY'] || '',
+            motherQualification: record["MOTHER'S QUALIFICATION"] || '',
             permanentAddress: {
+              addressLine: record['ADDRESS(PERMANANT)'] || '',
               village: record['CITY/VILLAGE(PERMANANT)'] || '',
-              taluka: record['TALUKA(PERMANENT)'] || '',
+              taluka: record['TALUKA_PERMANANT'] || '',
               district: record['DISTRICT_PERMANANT'] || '',
               state: record['STATE_PERMANANT'] || '',
+              landlineNo: record['LANDLINE_PERMANANT'] || '',
               areaPostOffice: record['AREA POST OFFICE'] || '',
               areaPoliceStation: record['AREA POLICE STATION'] || '',
               pinCode: record['PIN_PER'] || ''
             },
             localAddress: {
+              addressLine: record['ADDRESS(LOCAL)'] || '',
               village: record['CITY/VILLAGE(LOCAL)'] || '',
-              taluka: record['TALUKA(LOCAL)'] || '',
+              taluka: record['TALUKA_LOCAL'] || '',
               district: record['DISTRICT_LOCAL'] || '',
               state: record['STATE_LOCAL'] || '',
+              landlineNo: record['LANDLINE_LOCAL'] || '',
               areaPostOffice: record['AREA POST OFFICE LOCAL'] || '',
               areaPoliceStation: record['AREA POLICE STATION LOCAL'] || '',
               pinCode: record['PIN_LOCAL'] || ''
             },
             guardianName: record['GUARDIAN NAME'] || '',
+            guardianContactNo: record['GUARDIAN CONTACT NO'] || '',
+            relationWithGuardian: record['RELATION WITH GUARDIAN'] || '',
+            guardianOccupation: record['GUARDIAN OCCUPATION'] || '',
             guardianQualification: record['GUARDIAN QUALIFICATION'] || '',
             admissionDate: record['ADMISSION DATE'] || '',
             programLevel: record['PROGRAM LEVEL'] || '',
-            admissionDegree: record['ADMISSION CATEGORY'] || '',
             collegeName: record['SCHOOL/COLLEGE'] || '',
             degree: record['DEGREE'] || '',
             branch: record['PROGRAMME/BRANCH'] || '',
@@ -161,143 +161,17 @@ export default function HomePage() {
     loadStudents();
   }, []);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim() && !surname.trim()) {
-      toast.error('Please enter a search term');
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      // Split the query into multiple search terms for more flexible searching
-      const searchTerms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
-      const surnameTerms = surname.toLowerCase().split(/\s+/).filter(Boolean);
-      
-      const allSearchTerms = [...searchTerms, ...surnameTerms];
-      
-      // If no search terms, exit early
-      if (allSearchTerms.length === 0) {
-        setIsSearching(false);
-        return;
-      }
-
-      console.log('Searching for:', allSearchTerms);
-      console.log('Total students in data:', students.length);
-      
-      // More flexible search that handles various field formats
-      const foundStudents = students.filter(student => {
-        // Skip if student is null or undefined
-        if (!student) return false;
-        
-        // Create an array of all searchable fields from the student record
-        // Convert all values to lowercase strings for case-insensitive comparison
-        const fieldsToSearch = [
-          // Name fields - both composite and individual parts
-          student.fullName?.toLowerCase() || '',
-          student.firstName?.toLowerCase() || '',
-          student.middleName?.toLowerCase() || '',
-          student.lastName?.toLowerCase() || '',
-          
-          // IDs and contact info
-          student.enrollmentNumber?.toLowerCase() || '',
-          student.registrationNumber?.toLowerCase() || '',
-          // Use safe property access in case database model uses different property names
-          (student as any).registrationNo?.toLowerCase() || '',
-          student.rollNumber?.toLowerCase() || '',
-          student.emailId?.toLowerCase() || '',
-          student.mobileNumber?.toString().toLowerCase() || '',
-          student.alternateMobileNumber?.toString().toLowerCase() || '',
-          
-          // Personal info
-          student.dateOfBirth?.toLowerCase() || '',
-          student.birthPlace?.toLowerCase() || '',
-          student.gender?.toLowerCase() || '',
-          student.nationality?.toLowerCase() || '',
-          student.bloodGroup?.toLowerCase() || '',
-          student.religion?.toLowerCase() || '',
-          student.category?.toLowerCase() || '',
-          student.subCaste?.toLowerCase() || '',
-          // Use safe property access for potentially different field names
-          (student as any).subcategory?.toLowerCase() || '',
-          student.aadharNumber?.toString().toLowerCase() || '',
-          
-          // Father's info
-          student.fatherName?.toLowerCase() || '',
-          // Use safe property access for potentially different field names
-          (student as any).fatherFirstName?.toLowerCase() || '',
-          student.fatherMiddleName?.toLowerCase() || '',
-          student.fatherLastName?.toLowerCase() || '',
-          student.fatherMobileNumber?.toString().toLowerCase() || '',
-          
-          // Mother's info
-          student.motherName?.toLowerCase() || '',
-          student.motherMobileNumber?.toString().toLowerCase() || '',
-          
-          // Academic info
-          student.collegeName?.toLowerCase() || '',
-          student.branch?.toLowerCase() || '',
-          student.degree?.toLowerCase() || '',
-          student.admissionCategory?.toLowerCase() || '',
-          student.programLevel?.toLowerCase() || ''
-        ];
-        
-        // For debugging
-        if (fieldsToSearch.some(field => field.includes('borkar'))) {
-          console.log('Found potential match:', student.fullName, student.enrollmentNumber);
-        }
-        
-        // Now check if ANY search term matches ANY field
-        // This is a more lenient approach than requiring multiple matches
-        if (allSearchTerms.length === 1) {
-          // For single-term searches, any match is sufficient
-          const term = allSearchTerms[0];
-          return fieldsToSearch.some(field => field.includes(term));
-        } else {
-          // For multi-term searches, count matching terms
-          // A student matches if ANY term matches ANY field
-          // This is more lenient than requiring ALL terms to match
-          const matchCount = allSearchTerms.filter(term => 
-            fieldsToSearch.some(field => field.includes(term))
-          ).length;
-          
-          // Even a single match is valid (more lenient)
-          return matchCount > 0;
-        }
-      });
-
-      console.log(`Search found ${foundStudents.length} matching students`);
-      
-      if (foundStudents.length > 0) {
-        // If only one student found, display it directly
-        if (foundStudents.length === 1) {
-          setStudentData(foundStudents[0]);
-          toast.success(`Found student: ${foundStudents[0].fullName}`);
-        } else {
-          // For multiple matches, show the popup with all matches
-          setSearchResults(foundStudents);
-          setIsStudentListOpen(true);
-          // Also set the first student to display as default
-          setStudentData(foundStudents[0]);
-          toast.success(`Found ${foundStudents.length} matching students. Select one from the list.`);
-        }
-      } else {
-        setStudentData(null);
-        toast.error('No student found. Try using enrollment number or full name.', {
-          duration: 5000, // Show for 5 seconds
-        });
-        console.log('Search terms that failed:', allSearchTerms);
-      }
-    } catch (error) {
-      console.error('Error searching student data:', error);
-      toast.error('Error searching for student');
-      setStudentData(null);
-    } finally {
-      setIsSearching(false);
+  const handleSearchResults = (foundStudents: StudentInfo[]) => {
+    setSearchResults(foundStudents);
+    
+    if (foundStudents.length > 1) {
+      setIsStudentListOpen(true);
     }
   };
 
   const handleSelectStudent = (student: StudentInfo) => {
     setStudentData(student);
+    setIsStudentListOpen(false);
     toast.success(`Selected: ${student.fullName}`);
   };
 
@@ -386,71 +260,17 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Search Section */}
-        <div className="max-w-4xl mx-auto mb-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Student Information Search
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
-            Enter student details to access their information
-          </p>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 sm:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 text-left">
-                  Name or ID
-                </label>
-                <div className="relative">
-                  <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                  <input
-                    type="text" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:bg-gray-700 dark:text-white"
-                    placeholder="Enter name, ID, birth place or sub-caste"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 text-left">
-                  Surname (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={surname}
-                  onChange={(e) => setSurname(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:bg-gray-700 dark:text-white"
-                  placeholder="Enter surname"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={handleSearch}
-              disabled={isSearching || !searchQuery.trim()}
-              className={`mt-6 w-full sm:w-auto px-8 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-medium 
-                hover:from-blue-600 hover:to-indigo-700 transition-all transform hover:scale-[1.02] 
-                flex items-center justify-center space-x-2 ${isSearching || !searchQuery.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {isSearching ? (
-                <LoadingSpinner className="w-5 h-5" />
-              ) : (
-                <>
-                  <Search className="w-4 h-4" />
-                  <span>Search Students</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+        <StudentSearch 
+          onSearchResults={handleSearchResults}
+          onSelectStudent={handleSelectStudent}
+        />
 
         {/* Student Details */}
         {studentData ? (
           <StudentDetails student={studentData} />
-        ) : searchQuery && !isSearching && (
+        ) : (
           <div className="max-w-4xl mx-auto text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
-            <p className="text-gray-600 dark:text-gray-400 mb-2">No student found with the provided details.</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-2">No student selected. Use the search above to find students.</p>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
               Try searching with: 
               <ul className="mt-2 list-disc list-inside">
@@ -470,13 +290,13 @@ export default function HomePage() {
           onClose={() => setIsStudentListOpen(false)}
           onSelectStudent={handleSelectStudent}
         />
+        
+        {/* Notifications Popup */}
+        <NotificationsPopup 
+          isOpen={isNotificationsOpen}
+          onClose={() => setIsNotificationsOpen(false)}
+        />
       </main>
-
-      {/* Notifications Panel */}
-      <NotificationsPanel
-        isOpen={isNotificationsOpen}
-        onClose={() => setIsNotificationsOpen(false)}
-      />
     </div>
   );
 }
