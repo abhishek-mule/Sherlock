@@ -57,26 +57,34 @@ const config: Config = {
           '100%': { opacity: '1' },
         },
         'slide-up': {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         'slide-down': {
-          '0%': { transform: 'translateY(-20px)', opacity: '0' },
+          '0%': { transform: 'translateY(-10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         'slide-left': {
-          '0%': { transform: 'translateX(20px)', opacity: '0' },
+          '0%': { transform: 'translateX(10px)', opacity: '0' },
           '100%': { transform: 'translateX(0)', opacity: '1' },
         },
         'slide-right': {
-          '0%': { transform: 'translateX(-20px)', opacity: '0' },
+          '0%': { transform: 'translateX(-100%)', opacity: '0' },
           '100%': { transform: 'translateX(0)', opacity: '1' },
         },
         blob: {
-          '0%': { transform: 'translate(0px, 0px) scale(1)' },
-          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-          '100%': { transform: 'translate(0px, 0px) scale(1)' },
+          '0%': {
+            transform: 'scale(1)',
+          },
+          '33%': {
+            transform: 'scale(1.1) translateX(10%) translateY(-10%)',
+          },
+          '66%': {
+            transform: 'scale(0.9) translateX(-10%) translateY(10%)',
+          },
+          '100%': {
+            transform: 'scale(1)',
+          },
         },
       },
     },

@@ -1,163 +1,123 @@
 'use client';
 
-import { Menu, Transition } from '@headlessui/react';
-import { Settings, Moon, Sun, Monitor, Bell, User, LogOut } from 'lucide-react';
-import { Fragment, useState } from 'react';
+import { Settings, Moon, Sun, Monitor, Bell, User, LogOut, X } from 'lucide-react';
+import { useState } from 'react';
 import { useTheme } from 'next-themes';
-import { Tooltip } from './Tooltip';
 import toast from 'react-hot-toast';
-import { NotificationsPanel } from './NotificationsPanel';
-import { ProfileSettings } from './ProfileSettings';
 import { useRouter } from 'next/navigation';
 
-export function SettingsMenu() {
+interface SettingsMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function SettingsMenu({ isOpen, onClose }: SettingsMenuProps) {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = () => {
     // In a real app, you would handle actual logout logic here
     toast.success('Logged out successfully');
+    onClose();
     // Redirect to login page after logout
     router.push('/');
   };
 
-  return (
-    <>
-      <Menu as="div" className="relative inline-block text-left">
-        <Tooltip content="Settings">
-          <Menu.Button className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <Settings className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-          </Menu.Button>
-        </Tooltip>
+  if (!isOpen) return null;
 
-        <Transition
-          as={Fragment}
-          enter="transition ease-out duration-100"
-          enterFrom="transform opacity-0 scale-95"
-          enterTo="transform opacity-100 scale-100"
-          leave="transition ease-in duration-75"
-          leaveFrom="transform opacity-100 scale-100"
-          leaveTo="transform opacity-0 scale-95"
-        >
-          <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 dark:divide-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-            <div className="p-2">
-              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-                Theme
-              </div>
-              <Menu.Item>
-                {({ active }) => (
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="flex items-end justify-end min-h-screen">
+        <div className="relative bg-white dark:bg-gray-800 h-screen w-full max-w-sm shadow-xl overflow-y-auto animate-slide-right border-l border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <Settings className="w-5 h-5 mr-2" />
+              Settings
+            </h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <div className="p-4">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Theme</h3>
+            <div className="space-y-2">
                   <button
-                    className={`${
-                      active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                    } group flex w-full items-center rounded-md px-3 py-2 text-sm gap-3 ${
-                      theme === 'light' ? 'text-blue-600 dark:text-blue-400 font-medium' : ''
+                className={`flex items-center w-full p-3 rounded-lg ${
+                  theme === 'light' 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' 
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                     onClick={() => setTheme('light')}
                   >
-                    <Sun className="w-4 h-4" />
-                    Light
+                <Sun className="w-5 h-5 mr-3" />
+                <span>Light Mode</span>
                   </button>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
+              
                   <button
-                    className={`${
-                      active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                    } group flex w-full items-center rounded-md px-3 py-2 text-sm gap-3 ${
-                      theme === 'dark' ? 'text-blue-600 dark:text-blue-400 font-medium' : ''
+                className={`flex items-center w-full p-3 rounded-lg ${
+                  theme === 'dark' 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' 
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                     onClick={() => setTheme('dark')}
                   >
-                    <Moon className="w-4 h-4" />
-                    Dark
+                <Moon className="w-5 h-5 mr-3" />
+                <span>Dark Mode</span>
                   </button>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
+              
                   <button
-                    className={`${
-                      active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                    } group flex w-full items-center rounded-md px-3 py-2 text-sm gap-3 ${
-                      theme === 'system' ? 'text-blue-600 dark:text-blue-400 font-medium' : ''
+                className={`flex items-center w-full p-3 rounded-lg ${
+                  theme === 'system' 
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' 
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                     onClick={() => setTheme('system')}
                   >
-                    <Monitor className="w-4 h-4" />
-                    System
+                <Monitor className="w-5 h-5 mr-3" />
+                <span>System Preference</span>
                   </button>
-                )}
-              </Menu.Item>
+            </div>
             </div>
 
-            <div className="p-2">
-              <Menu.Item>
-                {({ active, close }) => (
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Account</h3>
+            <div className="space-y-2">
                   <button
-                    className={`${
-                      active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                    } group flex w-full items-center rounded-md px-3 py-2 text-sm gap-3`}
-                    onClick={() => {
-                      close();
-                      setIsNotificationsOpen(true);
-                    }}
+                className="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={onClose}
                   >
-                    <Bell className="w-4 h-4" />
-                    Notifications
+                <User className="w-5 h-5 mr-3" />
+                <span>Profile Settings</span>
                   </button>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active, close }) => (
+              
                   <button
-                    className={`${
-                      active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                    } group flex w-full items-center rounded-md px-3 py-2 text-sm gap-3`}
-                    onClick={() => {
-                      close();
-                      setIsProfileOpen(true);
-                    }}
+                className="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={onClose}
                   >
-                    <User className="w-4 h-4" />
-                    Profile Settings
+                <Bell className="w-5 h-5 mr-3" />
+                <span>Notification Preferences</span>
                   </button>
-                )}
-              </Menu.Item>
+            </div>
             </div>
 
-            <div className="p-2">
-              <Menu.Item>
-                {({ active }) => (
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                   <button
-                    className={`${
-                      active ? 'bg-gray-100 dark:bg-gray-700' : ''
-                    } group flex w-full items-center rounded-md px-3 py-2 text-sm gap-3 text-red-600 dark:text-red-400`}
+              className="flex items-center w-full p-3 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                     onClick={handleLogout}
                   >
-                    <LogOut className="w-4 h-4" />
-                    Logout
+              <LogOut className="w-5 h-5 mr-3" />
+              <span>Logout</span>
                   </button>
-                )}
-              </Menu.Item>
             </div>
-          </Menu.Items>
-        </Transition>
-      </Menu>
-
-      {/* Notifications Panel */}
-      <NotificationsPanel 
-        isOpen={isNotificationsOpen} 
-        onClose={() => setIsNotificationsOpen(false)} 
-      />
-
-      {/* Profile Settings */}
-      <ProfileSettings 
-        isOpen={isProfileOpen} 
-        onClose={() => setIsProfileOpen(false)} 
-      />
-    </>
+          
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>Sherlock v1.0.0</p>
+            <p className="mt-1">© {new Date().getFullYear()} Sherlock Systems</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

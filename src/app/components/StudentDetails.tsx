@@ -294,8 +294,8 @@ export function StudentDetails({ student }: StudentDetailsProps) {
                 </p>
               </div>
             ))}
-          </div>
         </div>
+      </div>
 
         {/* Address section */}
         <div className="mb-8">
