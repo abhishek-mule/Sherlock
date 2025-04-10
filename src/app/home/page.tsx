@@ -28,18 +28,57 @@ export default function HomePage() {
     const loadStudents = async () => {
       setIsLoading(true);
       try {
-        // First try to load from the API route
-        console.log("Attempting to load student data from API...");
+        // Try multiple ways to load student data
+        console.log("Attempting to load student data...");
         
-        // Try to use the API route first (without authentication)
-        const apiResponse = await fetch('/api/data');
+        let csvText = null;
+        let error = null;
         
-        if (!apiResponse.ok) {
-          throw new Error(`API error! status: ${apiResponse.status}`);
+        // Try option 1: API route
+        try {
+          console.log("Attempting API route: /api/data");
+          const apiResponse = await fetch('/api/data');
+          if (!apiResponse.ok) throw new Error(`API error! status: ${apiResponse.status}`);
+          csvText = await apiResponse.text();
+          console.log("Successfully loaded data from API route");
+        } catch (err) {
+          console.warn("API route failed:", err);
+          error = err;
+          
+          // Try option 2: Public directory
+          try {
+            console.log("Attempting public path: /data/students.csv");
+            const publicResponse = await fetch('/data/students.csv');
+            if (!publicResponse.ok) throw new Error(`Public path error! status: ${publicResponse.status}`);
+            csvText = await publicResponse.text();
+            console.log("Successfully loaded data from public path");
+          } catch (err2) {
+            console.warn("Public path failed:", err2);
+            error = err2;
+            
+            // Try option 3: Static path in Vercel
+            try {
+              console.log("Attempting static path: /public/data/students.csv");
+              const staticResponse = await fetch('/public/data/students.csv');
+              if (!staticResponse.ok) throw new Error(`Static path error! status: ${staticResponse.status}`);
+              csvText = await staticResponse.text();
+              console.log("Successfully loaded data from static path");
+            } catch (err3) {
+              console.warn("Static path failed:", err3);
+              error = err3;
+            }
+          }
         }
         
-        console.log("Successfully fetched data from API");
-        const csvText = await apiResponse.text();
+        if (!csvText) {
+          console.warn("All data loading methods failed, using minimal fallback data");
+          // Minimal fallback data as a CSV string
+          csvText = `SRNO,REGISTRATION_NO,ENROLLMENT NUMBER,ROLLNO,NAME,FIRSTNAME,MIDDLE NAME,LAST NAME,MOBILE NO.,EMAILID,DOB,GENDER,FATHERNAME,FATHERMOBILE
+1,REG20230001,ENRL20230001,ROLL001,John Demo Smith,John,Demo,Smith,9876543210,john.smith@example.com,2000-01-15,Male,Robert Smith,9876543211
+2,REG20230002,ENRL20230002,ROLL002,Jane Demo Doe,Jane,Demo,Doe,9876543212,jane.doe@example.com,2001-05-20,Female,Michael Doe,9876543213`;
+          
+          toast.error("Using demo data. Server data couldn't be loaded.");
+        }
         
         // Parse the CSV data
         console.log("Parsing CSV data...");
