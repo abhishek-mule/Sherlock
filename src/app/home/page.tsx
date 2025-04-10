@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { parse } from 'csv-parse/sync';
 import { toast } from 'react-hot-toast';
-import { Menu, Bell, User, Search } from 'lucide-react';
+import { Menu, Bell, User, Search, MoonStar, Sun, LayoutDashboard } from 'lucide-react';
 
 import { StudentInfo } from '../types/student';
 import { StudentDetails } from '../components/StudentDetails';
@@ -13,6 +13,7 @@ import { SettingsMenu } from '../components/SettingsMenu';
 import { Tooltip } from '../components/Tooltip';
 import { StudentSearch } from '../components/StudentSearch';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useTheme } from 'next-themes';
 
 // Fallback data as a constant to ensure data availability
 const FALLBACK_DATA = `SRNO,REGISTRATION_NO,ENROLLMENT NUMBER,ROLLNO,NAME,FIRSTNAME,MIDDLE NAME,LAST NAME,MOBILE NO.,EMAILID,DOB,GENDER,FATHERNAME,FATHERMOBILE
@@ -27,6 +28,8 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<StudentInfo[]>([]);
   const [isStudentListOpen, setIsStudentListOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const loadStudents = async () => {
@@ -175,90 +178,124 @@ export default function HomePage() {
     toast.success(`Selected: ${student.fullName}`);
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner className="w-12 h-12" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center">
+          <LoadingSpinner className="w-16 h-16 mx-auto mb-4 text-indigo-600 dark:text-indigo-400" />
+          <h2 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">Loading Student Data</h2>
+          <p className="text-gray-500 dark:text-gray-400">Please wait while we fetch the information...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
+        <div className="container mx-auto px-4 py-3">
+          <nav className="flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="relative w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Search className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md">
+                <LayoutDashboard className="w-5 h-5" />
               </div>
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
+              <span className="font-bold text-xl">
+                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
                 Sherlock
+                </span>
               </span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-1">
+              <Tooltip content="Toggle Theme">
+            <button 
+                  onClick={toggleTheme}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Toggle Theme"
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  ) : (
+                    <MoonStar className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  )}
+            </button>
+              </Tooltip>
+
+              <Tooltip content="Notifications">
+                <button 
+                  onClick={() => setIsNotificationsOpen(true)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+              </Tooltip>
+
+              <Tooltip content="Account Settings">
+                <button 
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Account Settings"
+                >
+                  <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                </button>
+              </Tooltip>
             </div>
 
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle mobile menu"
             >
               <Menu className="w-6 h-6" />
             </button>
-
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-6">
-              <Tooltip content="Notifications">
-                <button 
-                  className="relative text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                  onClick={() => setIsNotificationsOpen(true)}
-                >
-                  <Bell className="w-6 h-6" />
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    3
-                  </span>
-                </button>
-              </Tooltip>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <span className="text-gray-700 dark:text-gray-300">Admin User</span>
-              </div>
-              <SettingsMenu />
-            </div>
-          </div>
+          </nav>
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden mt-4 py-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col space-y-4">
+            <div className="md:hidden py-3 border-t border-gray-200 dark:border-gray-700 mt-3">
+              <div className="flex flex-col space-y-2">
                 <button 
-                  className="relative text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center"
-                  onClick={() => setIsNotificationsOpen(true)}
+                  onClick={toggleTheme}
+                  className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <Bell className="w-6 h-6 mr-2" />
-                  <span>Notifications</span>
-                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    3
-                  </span>
+                  {theme === 'dark' ? (
+                    <Sun className="w-5 h-5 mr-3 text-gray-600 dark:text-gray-300" />
+                  ) : (
+                    <MoonStar className="w-5 h-5 mr-3 text-gray-600 dark:text-gray-300" />
+                  )}
+                  <span>Toggle Theme</span>
                 </button>
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <span className="text-gray-700 dark:text-gray-300">Admin User</span>
-                </div>
-                <SettingsMenu />
+                <button 
+                  onClick={() => setIsNotificationsOpen(true)}
+                  className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Bell className="w-5 h-5 mr-3 text-gray-600 dark:text-gray-300" />
+                  <span>Notifications</span>
+                </button>
+                <button 
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                  className="flex items-center px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <User className="w-5 h-5 mr-3 text-gray-600 dark:text-gray-300" />
+                  <span>Account Settings</span>
+                </button>
               </div>
             </div>
           )}
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6">
         {/* Search Section */}
         <StudentSearch 
           onSearchResults={handleSearchResults}
@@ -269,17 +306,40 @@ export default function HomePage() {
         {studentData ? (
           <StudentDetails student={studentData} />
         ) : (
-          <div className="max-w-4xl mx-auto text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
-            <p className="text-gray-600 dark:text-gray-400 mb-2">No student selected. Use the search above to find students.</p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <div className="max-w-4xl mx-auto mt-8 text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 animate-fade-in">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">
+                <Search className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No Student Selected</h2>
+              <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                Use the search above to find and view student information.
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-left">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               Try searching with: 
-              <ul className="mt-2 list-disc list-inside">
-                <li>Enrollment Number (e.g., ENR12345)</li>
-                <li>Full Name (e.g., BORKAR ABHA)</li>
-                <li>Registration Number</li>
-                <li>Mobile Number</li>
+              </p>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <li className="flex items-center text-gray-600 dark:text-gray-400">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Enrollment Number (e.g., ENR12345)
+                </li>
+                <li className="flex items-center text-gray-600 dark:text-gray-400">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Full Name (e.g., BORKAR ABHA)
+                </li>
+                <li className="flex items-center text-gray-600 dark:text-gray-400">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Registration Number
+                </li>
+                <li className="flex items-center text-gray-600 dark:text-gray-400">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Mobile Number
+                </li>
               </ul>
-            </p>
+            </div>
           </div>
         )}
         
@@ -296,7 +356,31 @@ export default function HomePage() {
           isOpen={isNotificationsOpen}
           onClose={() => setIsNotificationsOpen(false)}
         />
+        
+        {/* Settings Menu (if implemented) */}
+        {isSettingsOpen && (
+          <SettingsMenu 
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+          />
+        )}
       </main>
+      
+      {/* Footer */}
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6 mt-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 md:mb-0">
+              © {new Date().getFullYear()} Sherlock Student Information System. All rights reserved.
+            </p>
+            <div className="flex space-x-4">
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm">Privacy Policy</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm">Terms of Service</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm">Contact</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

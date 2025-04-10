@@ -1,5 +1,5 @@
 import { StudentInfo } from '../types/student';
-import { Eye, AlertTriangle } from 'lucide-react';
+import { Eye, AlertTriangle, User, BookOpen, Home, School, GraduationCap, Heart, Shield, Award, Database } from 'lucide-react';
 import { useState } from 'react';
 import { StudentOsintInfo } from './StudentOsintInfo';
 import { OsintDisclaimer } from './OsintDisclaimer';
@@ -38,9 +38,19 @@ const getLocalAddress = (student: any) => {
   };
 };
 
+interface SectionType {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  fields?: { label: string; value: string | undefined }[];
+  component?: React.ReactNode;
+}
+
 export function StudentDetails({ student }: StudentDetailsProps) {
   const [isOsintOpen, setIsOsintOpen] = useState(false);
   const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+  const [showAllInfo, setShowAllInfo] = useState(false);
   
   if (!student) return null;
 
@@ -79,9 +89,11 @@ export function StudentDetails({ student }: StudentDetailsProps) {
   
   // Now we have address objects whether the data came in flat or nested form
 
-  const sections = [
+  const sections: SectionType[] = [
     {
+      id: 'personal',
       title: 'Personal Information',
+      icon: <User className="w-5 h-5" />,
       fields: [
         { label: 'Full Name', value: `${student.fullName || ''}` },
         { label: 'Enrollment Number', value: student.enrollmentNumber },
@@ -114,7 +126,9 @@ export function StudentDetails({ student }: StudentDetailsProps) {
       ]
     },
     {
+      id: 'family',
       title: 'Family Information',
+      icon: <Heart className="w-5 h-5" />,
       fields: [
         { 
           label: "Father's Name", 
@@ -139,7 +153,9 @@ export function StudentDetails({ student }: StudentDetailsProps) {
       ]
     },
     {
+      id: 'academic',
       title: 'Academic Information',
+      icon: <GraduationCap className="w-5 h-5" />,
       fields: [
         { label: 'Admission Date', value: student.admissionDate },
         { label: 'Admission Type', value: student.admissionType },
@@ -160,7 +176,9 @@ export function StudentDetails({ student }: StudentDetailsProps) {
       ]
     },
     {
+      id: 'tenth',
       title: '10th Education',
+      icon: <School className="w-5 h-5" />,
       fields: [
         { label: 'School Name', value: student.tenthSchoolCollegeName },
         { label: 'Board', value: student.tenthBoard },
@@ -174,149 +192,17 @@ export function StudentDetails({ student }: StudentDetailsProps) {
       ]
     },
     {
-      title: '12th Education',
-      fields: [
-        { label: 'School Name', value: student.twelfthSchoolCollegeName },
-        { label: 'Board', value: student.twelfthBoard },
-        { label: 'Year of Exam', value: student.twelfthYearOfExam },
-        { label: 'Medium', value: student.twelfthMedium },
-        { label: 'Seat Number', value: student.twelfthSeatNo },
-        { label: 'Physics Marks', value: student.twelfthPhysicsObtMarks ? `${student.twelfthPhysicsObtMarks}/${student.twelfthPhysicsTotalMarks}` : '' },
-        { label: 'Chemistry Marks', value: student.twelfthChemistryObtMarks ? `${student.twelfthChemistryObtMarks}/${student.twelfthChemistryTotalMarks}` : '' },
-        { label: 'Math Marks', value: student.twelfthMathObtMarks ? `${student.twelfthMathObtMarks}/${student.twelfthMathTotalMarks}` : '' },
-        { label: 'PCM Total', value: student.twelfthPCMObtMarks },
-        { label: 'PCM Percentage', value: student.twelfthPCMPercentage },
-        { label: 'Vocational Subject', value: student.twelfthVocationalSubject },
-        { label: 'Vocational Marks', value: student.twelfthVocObtainedMarks ? `${student.twelfthVocObtainedMarks}/${student.twelfthVocTotalMarks}` : '' },
-        { label: 'Total Marks', value: student.twelfthMarksObtained ? `${student.twelfthMarksObtained}/${student.twelfthOutOfMarks}` : '' },
-        { label: 'Percentile', value: student.twelfthPercentile },
-        { label: 'School Address', value: student.twelfthSchoolCollegeAddress },
-      ]
-    },
-    {
-      title: 'Diploma Information',
-      fields: [
-        { label: 'Institute Name', value: student.diplomaSchoolCollegeName },
-        { label: 'Board', value: student.diplomaBoard },
-        { label: 'Year of Exam', value: student.diplomaYearOfExam },
-        { label: 'Medium', value: student.diplomaMedium },
-        { label: 'Marks Obtained', value: student.diplomaMarksObtained ? `${student.diplomaMarksObtained}/${student.diplomaOutOfMarks}` : '' },
-        { label: 'Percentile', value: student.diplomaPercentile },
-        { label: 'Seat Number', value: student.diplomaSeatNo },
-        { label: 'Institute Address', value: student.diplomaSchoolCollegeAddress },
-      ]
-    },
-    {
-      title: 'Entrance Exam',
-      fields: [
-        { label: 'Entrance Exam', value: student.entranceExam },
-        { label: 'Exam Name', value: student.entranceExamName },
-        { label: 'Seat Number', value: student.entranceExamSeatNo },
-        { label: 'Year of Exam', value: student.entranceExamYear },
-        { label: 'Percentile', value: student.entranceExamPercentile },
-        { label: 'Rank', value: student.entranceExamRank },
-      ]
-    },
-    {
-      title: 'COVID-19 Vaccination',
-      fields: [
-        { label: 'Vaccinated', value: student.isVaccinated },
-        { label: 'Vaccine Name', value: student.vaccineName },
-        { label: '1st Dose Center', value: student.firstDoseVaccinationCenter },
-        { label: '1st Dose Date', value: student.firstDoseVaccinatedDate },
-        { label: '2nd Dose Center', value: student.secondDoseVaccinationCenter },
-        { label: '2nd Dose Date', value: student.secondDoseVaccinatedDate },
-      ]
-    },
-    {
-      title: 'Other Details',
-      fields: [
-        { label: 'Bank Name', value: student.bankName },
-        { label: 'IFSC Code', value: student.ifscCode },
-        { label: 'Bank Address', value: student.bankAddress },
-        { label: 'Sport Name', value: student.sportName },
-        { label: 'Sport Level', value: student.sportLevel },
-        { label: 'Achievement Details', value: student.achievementDetails },
-      ]
-    },
-  ];
-
-  // Filter sections to only show those with at least one value
-  const filteredSections = sections.filter(section => 
-    section.fields.some(field => field.value)
-  );
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 mt-8 mx-auto max-w-7xl">
-      <div className="flex justify-between items-start mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Student Profile</h2>
-        <button 
-          onClick={handleOsintButtonClick}
-          className="flex items-center space-x-2 px-4 py-2 bg-orange-200 hover:bg-orange-300 dark:bg-orange-700 dark:hover:bg-orange-600 text-orange-900 dark:text-white rounded-lg transition-colors"
-          aria-label="View OSINT Data"
-        >
-          <Eye className="w-4 h-4 text-orange-800 dark:text-orange-100" />
-          <span className="font-medium">View OSINT Data</span>
-          <AlertTriangle className="w-4 h-4 text-orange-700 dark:text-orange-100" />
-        </button>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-        {filteredSections.slice(0, 4).map((section) => (
-          <div key={section.title} className="space-y-4 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-600 pb-2">
-              {section.title}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {section.fields.filter(field => field.value).map((field) => (
-                <div key={field.label} className="space-y-1 hover:bg-white dark:hover:bg-gray-600 p-2 rounded-md transition-colors">
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    {field.label}
-                  </span>
-                  <p className="text-gray-900 dark:text-white break-words font-medium">
-                    {field.value || 'Not provided'}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Additional Education Sections */}
-      {filteredSections.length > 4 && (
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {filteredSections.slice(4).map((section) => (
-            <div key={section.title} className="space-y-4 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-600 pb-2">
-                {section.title}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {section.fields.filter(field => field.value).map((field) => (
-                  <div key={field.label} className="space-y-1 hover:bg-white dark:hover:bg-gray-600 p-2 rounded-md transition-colors">
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      {field.label}
-                    </span>
-                    <p className="text-gray-900 dark:text-white break-words font-medium">
-                      {field.value || 'Not provided'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Address Information */}
-      <div className="mt-8 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-600 pb-2 mb-4">
-          Address Information
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-          <div className="space-y-2 bg-white dark:bg-gray-600 p-3 rounded-lg">
-            <h4 className="font-medium text-gray-900 dark:text-white">Permanent Address</h4>
-            <address className="not-italic text-gray-800 dark:text-gray-100 space-y-1">
+      id: 'address',
+      title: 'Address Information',
+      icon: <Home className="w-5 h-5" />,
+      component: (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <div className="bg-white dark:bg-gray-700 shadow-sm rounded-xl p-4 border border-gray-100 dark:border-gray-600 hover:shadow-md transition-shadow">
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white flex items-center mb-3">
+              <Shield className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+              Permanent Address
+            </h4>
+            <address className="not-italic text-gray-800 dark:text-gray-200 space-y-1.5">
               {permanentAddress.addressLine && <p>{permanentAddress.addressLine}</p>}
               {permanentAddress.village && <p>{permanentAddress.village}</p>}
               {(permanentAddress.taluka || permanentAddress.district) && (
@@ -336,9 +222,12 @@ export function StudentDetails({ student }: StudentDetailsProps) {
               {permanentAddress.areaPoliceStation && <p>Police Station: {permanentAddress.areaPoliceStation}</p>}
             </address>
           </div>
-          <div className="space-y-2 bg-white dark:bg-gray-600 p-3 rounded-lg">
-            <h4 className="font-medium text-gray-900 dark:text-white">Local Address</h4>
-            <address className="not-italic text-gray-800 dark:text-gray-100 space-y-1">
+          <div className="bg-white dark:bg-gray-700 shadow-sm rounded-xl p-4 border border-gray-100 dark:border-gray-600 hover:shadow-md transition-shadow">
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white flex items-center mb-3">
+              <Home className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+              Local Address
+            </h4>
+            <address className="not-italic text-gray-800 dark:text-gray-200 space-y-1.5">
               {localAddress.addressLine && <p>{localAddress.addressLine}</p>}
               {localAddress.village && <p>{localAddress.village}</p>}
               {(localAddress.taluka || localAddress.district) && (
@@ -359,46 +248,221 @@ export function StudentDetails({ student }: StudentDetailsProps) {
             </address>
           </div>
         </div>
-      </div>
+      )
+    }
+  ];
 
-      {/* Guardian Information */}
-      {student.guardianName && (
-        <div className="mt-8 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white border-b border-gray-300 dark:border-gray-600 pb-2 mb-4">
-            Guardian Information
+  // Filter sections to only show those with at least one value
+  const filteredSections = sections.filter(section => 
+    section.fields ? section.fields.some(field => field.value) : true
+  );
+
+  // Create a special "View All" section that combines all fields from all sections
+  const allFields = [];
+  
+  // Add all basic student information, dynamically generating fields from the student object
+  for (const [key, value] of Object.entries(student)) {
+    // Skip complex objects like addresses, we'll handle those separately
+    if (typeof value !== 'object' && value !== null && value !== undefined && value !== '') {
+      allFields.push({
+        label: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+        value: value.toString()
+      });
+    }
+  }
+
+  const allInfoSection: SectionType = {
+    id: 'all',
+    title: 'All Information',
+    icon: <Database className="w-5 h-5" />,
+    component: (
+      <div>
+        {/* Display all fields from student object */}
+        <div className="mb-8">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+            <Database className="w-5 h-5 mr-2" />
+            All Student Information
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1 bg-white dark:bg-gray-600 p-3 rounded-lg">
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Guardian Name</span>
-              <p className="text-gray-900 dark:text-white font-medium">{student.guardianName}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {allFields.map((field) => (
+              <div key={field.label} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-700 hover:shadow-sm">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 block mb-1">
+                  {field.label}
+                </span>
+                <p className="text-gray-900 dark:text-white font-medium break-words">
+                  {field.value || 'Not provided'}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Address section */}
+        <div className="mb-8">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+            <Home className="w-5 h-5 mr-2" />
+            Address Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-700 shadow-sm rounded-xl p-4 border border-gray-100 dark:border-gray-600 hover:shadow-md transition-shadow">
+              <h4 className="text-lg font-medium text-gray-900 dark:text-white flex items-center mb-3">
+                <Shield className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                Permanent Address
+              </h4>
+              <address className="not-italic text-gray-800 dark:text-gray-200 space-y-1.5">
+                {permanentAddress.addressLine && <p>{permanentAddress.addressLine}</p>}
+                {permanentAddress.village && <p>{permanentAddress.village}</p>}
+                {(permanentAddress.taluka || permanentAddress.district) && (
+                  <p>
+                    {permanentAddress.taluka && `${permanentAddress.taluka}, `} 
+                    {permanentAddress.district}
+                  </p>
+                )}
+                {(permanentAddress.state || permanentAddress.pinCode) && (
+                  <p>
+                    {permanentAddress.state} 
+                    {permanentAddress.pinCode && ` - ${permanentAddress.pinCode}`}
+                  </p>
+                )}
+                {permanentAddress.landlineNo && <p>Landline: {permanentAddress.landlineNo}</p>}
+                {permanentAddress.areaPostOffice && <p>Post Office: {permanentAddress.areaPostOffice}</p>}
+                {permanentAddress.areaPoliceStation && <p>Police Station: {permanentAddress.areaPoliceStation}</p>}
+              </address>
             </div>
-            {student.guardianContactNo && (
-              <div className="space-y-1 bg-white dark:bg-gray-600 p-3 rounded-lg">
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Contact Number</span>
-                <p className="text-gray-900 dark:text-white font-medium">{student.guardianContactNo}</p>
+            <div className="bg-white dark:bg-gray-700 shadow-sm rounded-xl p-4 border border-gray-100 dark:border-gray-600 hover:shadow-md transition-shadow">
+              <h4 className="text-lg font-medium text-gray-900 dark:text-white flex items-center mb-3">
+                <Home className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                Local Address
+              </h4>
+              <address className="not-italic text-gray-800 dark:text-gray-200 space-y-1.5">
+                {localAddress.addressLine && <p>{localAddress.addressLine}</p>}
+                {localAddress.village && <p>{localAddress.village}</p>}
+                {(localAddress.taluka || localAddress.district) && (
+                  <p>
+                    {localAddress.taluka && `${localAddress.taluka}, `} 
+                    {localAddress.district}
+                  </p>
+                )}
+                {(localAddress.state || localAddress.pinCode) && (
+                  <p>
+                    {localAddress.state} 
+                    {localAddress.pinCode && ` - ${localAddress.pinCode}`}
+                  </p>
+                )}
+                {localAddress.landlineNo && <p>Landline: {localAddress.landlineNo}</p>}
+                {localAddress.areaPostOffice && <p>Post Office: {localAddress.areaPostOffice}</p>}
+                {localAddress.areaPoliceStation && <p>Police Station: {localAddress.areaPoliceStation}</p>}
+              </address>
+            </div>
+          </div>
+        </div>
+
+        {/* Also display organized sections */}
+        {sections.map(section => (
+          section.fields && section.fields.some(field => field.value) ? (
+            <div key={section.id} className="mb-8">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <span className="mr-2">{section.icon}</span>
+                {section.title}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {section.fields.filter(field => field.value).map((field: {label: string, value: string | undefined}) => (
+                  <div key={`${section.id}-${field.label}`} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-700 hover:shadow-sm">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400 block mb-1">
+                      {field.label}
+                    </span>
+                    <p className="text-gray-900 dark:text-white font-medium break-words">
+                      {field.value || 'Not provided'}
+                    </p>
+                  </div>
+                ))}
               </div>
-            )}
-            {student.relationWithGuardian && (
-              <div className="space-y-1 bg-white dark:bg-gray-600 p-3 rounded-lg">
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Relation</span>
-                <p className="text-gray-900 dark:text-white font-medium">{student.relationWithGuardian}</p>
+            </div>
+          ) : null
+        ))}
+      </div>
+    )
+  };
+
+  // Add the "All Information" section to the filtered sections
+  const allSections = [allInfoSection, ...filteredSections];
+
+  // Get the active section
+  const activeSection = allSections.find(section => section.id === activeTab) || allSections[0];
+
+  return (
+    <div className="animate-fade-in">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 sm:p-8 mt-6 mx-auto max-w-6xl border border-gray-100 dark:border-gray-700">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <div className="inline-flex items-center justify-center px-3 py-1 mb-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+              <Database className="w-4 h-4 mr-1.5 text-blue-600 dark:text-blue-400" />
+              <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Student Record</span>
+      </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
+              {student.fullName}
+            </h2>
+            <div className="mt-1 flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400">
+              {student.enrollmentNumber && (
+                <span className="mr-3">Enrollment: <span className="font-medium text-gray-700 dark:text-gray-300">{student.enrollmentNumber}</span></span>
+              )}
+              {student.branch && (
+                <span className="mr-3">Branch: <span className="font-medium text-gray-700 dark:text-gray-300">{student.branch}</span></span>
+              )}
+              {student.semester && (
+                <span>Semester: <span className="font-medium text-gray-700 dark:text-gray-300">{student.semester}</span></span>
+              )}
+            </div>
+          </div>
+          <button 
+            onClick={handleOsintButtonClick}
+            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
+            aria-label="View OSINT Data"
+          >
+            <Eye className="w-4 h-4" />
+            <span className="font-medium">OSINT Data</span>
+            <AlertTriangle className="w-4 h-4" />
+          </button>
               </div>
-            )}
-            {student.guardianOccupation && (
-              <div className="space-y-1 bg-white dark:bg-gray-600 p-3 rounded-lg">
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Occupation</span>
-                <p className="text-gray-900 dark:text-white font-medium">{student.guardianOccupation}</p>
+        
+        {/* Tab Navigation */}
+        <div className="flex overflow-x-auto pb-2 mb-6 border-b border-gray-200 dark:border-gray-700">
+          {allSections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => setActiveTab(section.id)}
+              className={`flex items-center px-4 py-2 mr-2 rounded-lg whitespace-nowrap transition-colors ${
+                activeTab === section.id 
+                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <span className="mr-2">{section.icon}</span>
+              {section.title}
+            </button>
+          ))}
               </div>
-            )}
-            {student.guardianQualification && (
-              <div className="space-y-1 bg-white dark:bg-gray-600 p-3 rounded-lg">
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Qualification</span>
-                <p className="text-gray-900 dark:text-white font-medium">{student.guardianQualification}</p>
+        
+        {/* Content Area */}
+        <div className="min-h-[300px]">
+          {activeSection.component ? (
+            activeSection.component
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {activeSection.fields?.filter(field => field.value).map((field) => (
+                <div key={field.label} className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-700 hover:shadow-sm">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400 block mb-1">
+                    {field.label}
+                  </span>
+                  <p className="text-gray-900 dark:text-white font-medium break-words">
+                    {field.value || 'Not provided'}
+                  </p>
+              </div>
+              ))}
               </div>
             )}
           </div>
         </div>
-      )}
       
       {/* OSINT Disclaimer */}
       <OsintDisclaimer 

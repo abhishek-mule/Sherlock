@@ -34,11 +34,20 @@ export async function GET(request: NextRequest) {
           { fullName: { contains: query, mode: Prisma.QueryMode.insensitive } },
           { enrollmentNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
           { registrationNo: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { registrationNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
           { rollNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
           { emailId: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { alternateEmailId: { contains: query, mode: Prisma.QueryMode.insensitive } },
           { mobileNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { alternateMobileNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { studentMobileNo2: { contains: query, mode: Prisma.QueryMode.insensitive } },
           { fatherName: { contains: query, mode: Prisma.QueryMode.insensitive } },
-          { motherName: { contains: query, mode: Prisma.QueryMode.insensitive } }
+          { motherName: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { abcIdNumber: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { firstName: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { middleName: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { lastName: { contains: query, mode: Prisma.QueryMode.insensitive } },
+          { aadharNumber: { contains: query, mode: Prisma.QueryMode.insensitive } }
         ]
       });
     }
