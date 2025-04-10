@@ -6,7 +6,15 @@ import path from 'path';
 // Don't initialize Prisma at the module level for build
 // Instead, create a function to get the Prisma client
 function getPrismaClient() {
-  return new PrismaClient();
+  console.log("Initializing Prisma client with connection string...");
+  // Log a sanitized version of the connection string for debugging
+  const dbUrl = process.env.DATABASE_URL || 'No database URL found in environment';
+  const sanitizedUrl = dbUrl.replace(/\/\/.*?@/, '//[CREDENTIALS_HIDDEN]@');
+  console.log(`Database URL format: ${sanitizedUrl}`);
+  
+  return new PrismaClient({
+    log: ['query', 'info', 'warn', 'error'],
+  });
 }
 
 export async function GET(request: NextRequest) {
