@@ -1,14 +1,10 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "target": "es2020",
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "outDir": "dist",
-    "strict": true,
-    "lib": ["es2020"]
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["scripts/**/*"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": ["vite.config.ts"]
 }
