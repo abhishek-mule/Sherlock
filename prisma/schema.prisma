@@ -12,55 +12,79 @@ datasource db {
 
 model Student {
   id                    Int       @id @default(autoincrement())
+  // System Information
   srNo                  String?
+  
+  // Personal Information
   registrationNo        String?
   enrollmentNumber      String?   @unique
+  abcIdNumber           String?
   rollNumber            String?
+  admissionType         String?
   fullName              String
   firstName             String?
   middleName            String?
   lastName              String?
   mobileNumber          String?
+  studentMobileNo2      String?
   alternateMobileNumber String?
   emailId               String?
   alternateEmailId      String?
-  address               String?
-  city                  String?
+  dateOfBirth           String?
+  birthPlace            String?
   gender                String?
   nationality           String?
   bloodGroup            String?
-  physicallyHandicapped Boolean?  @default(false)
+  maritalStatus         String?
   religion              String?
   category              String?
   subcategory           String?
-  admissionType         String?
+  subCaste              String?
+  physicallyHandicapped Boolean?  @default(false)
+  typeOfDisability      String?
   aadharNumber          String?
-  abcIdNumber           String?
+  passportNo            String?
   passportNumber        String?
-  maritalStatus         String?
+  admissionThrough      String?
+  isHosteller           Boolean?  @default(false)
+  transportation        String?
+  areBothParentsAlive   Boolean?  @default(true)
+  address               String?
+  city                  String?
   
   // Father's Information
   fatherName            String?
   fatherFirstName       String?
+  fatherMiddleName      String?
   fatherLastName        String?
   fatherMobileNumber    String?
   fatherAlternateMobile String?
+  fathersAlternateMobileNo String?
   fatherOfficePhone     String?
+  fathersOfficePhoneNo  String?
   fatherOccupation      String?
   fatherQualification   String?
+  fatherEmail           String?
   fatherAnnualIncome    String?
+  annualFamilyIncome    String?
   
   // Mother's Information
   motherName            String?
   motherMobileNumber    String?
+  mothersAlternateMobileNo String?
   motherOccupation      String?
   motherQualification   String?
+  motherEmail           String?
+  motherOfficePhone     String?
   
   // Category Information
   castCategory          String?
+  socialCategory        String?
   
   // Permanent Address
   permanentAddressLine  String?
+  permanentVillage      String?
+  permanentTaluka       String?
   permanentDistrict     String?
   permanentCity         String?
   permanentState        String?
@@ -72,6 +96,8 @@ model Student {
   
   // Local Address
   localAddressLine      String?
+  localVillage          String?
+  localTaluka           String?
   localDistrict         String?
   localCity             String?
   localState            String?
@@ -89,35 +115,65 @@ model Student {
   guardianQualification String?
   
   // Academic Information
-  admissionDate         DateTime? 
+  admissionDate         DateTime?
+  admissionType1        String? 
   programLevel          String?
+  admissionCategory     String?
+  collegeName           String?
   degree                String?
   branch                String?
+  language              String?
   medium                String?
+  admissionBatch        String?
+  year                  String?
+  semester              String?
   academicYear          String?
   currentYear           Int?
   currentSemester       Int?
-  admissionCategory     String?
+  uploadedDocuments     String?
   
-  // Previous Education Information
-  // 10th Details
+  // 10th Education Details
+  tenthSchoolCollegeName String?
   tenthSchoolName       String?
   tenthBoard            String?
   tenthYear             String?
   tenthMedium           String?
+  tenthMarksObtained    String?
+  tenthOutOfMarks       String?
+  tenthPercentile       String?
+  tenthSeatNo           String?
+  tenthSchoolCollegeAddress String?
   tenthMarks            Float?
   tenthTotalMarks       Float?
   tenthPercentage       Float?
   tenthCertificateNo    String?
   
   // 12th Details
+  twelfthSchoolCollegeName String?
   twelfthSchoolName     String?
   twelfthBoard          String?
+  twelfthYearOfExam     String?
   twelfthYear           String?
   twelfthMedium         String?
+  twelfthSeatNo         String?
   twelfthCertificateNo  String?
+  twelfthSchoolCollegeAddress String?
   
   // Subject Marks in 12th
+  twelfthPhysicsObtMarks String?
+  twelfthPhysicsTotalMarks String?
+  twelfthChemistryObtMarks String?
+  twelfthChemistryTotalMarks String?
+  twelfthMathObtMarks   String?
+  twelfthMathTotalMarks String?
+  twelfthPCMObtMarks    String?
+  twelfthPCMPercentage  String?
+  twelfthVocationalSubject String?
+  twelfthVocObtainedMarks String?
+  twelfthVocTotalMarks  String?
+  twelfthMarksObtained  String?
+  twelfthOutOfMarks     String?
+  twelfthPercentile     String?
   physicsMarks          Float?
   physicsTotalMarks     Float?
   chemistryMarks        Float?
@@ -133,9 +189,84 @@ model Student {
   twelfthTotalOutOf     Float?
   twelfthPercentage     Float?
   
-  // Additional Fields
-  collegeName           String?
-  bankAccountNumber     String?
+  // Diploma Details
+  diplomaSchoolCollegeName String?
+  diplomaBoard           String?
+  diplomaYearOfExam      String?
+  diplomaMedium          String?
+  diplomaMarksObtained   String?
+  diplomaOutOfMarks      String?
+  diplomaPercentile      String?
+  diplomaSeatNo          String?
+  diplomaSchoolCollegeAddress String?
+  
+  // Entrance Exam Details
+  entranceExam           String?
+  entranceExamName       String?
+  entranceExamSeatNo     String?
+  entranceExamYear       String?
+  entranceExamPercentile String?
+  entranceExamRank       String?
+  
+  // Last Qualification Details
+  lastQualification      String?
+  lastQualificationSchoolCollegeName String?
+  lastQualificationBoard String?
+  lastQualificationQualifyingExam String?
+  lastQualificationSeatNo String?
+  lastQualificationYearOfExam String?
+  lastQualificationMarkObtained String?
+  lastQualificationOutOfMarks String?
+  lastQualificationPercentage String?
+  lastQualificationGrade String?
+  lastQualificationDGPACGPA String?
+  lastQualificationCollegeAddress String?
+  
+  // PhD Details
+  phdSchoolCollegeName   String?
+  phdBoard              String?
+  phdQualifyingExam     String?
+  phdYearOfExam         String?
+  phdSeatNo             String?
+  phdMarksObtained      String?
+  phdOutOfMarks         String?
+  phdPercentage         String?
+  phdGrade              String?
+  phdSchoolCollegeAddress String?
+  
+  // COVID Vaccination Details
+  isVaccinated           String?
+  vaccineName            String?
+  firstDoseVaccinationCenter String?
+  secondDoseVaccinationCenter String?
+  firstDoseVaccinatedDate String?
+  secondDoseVaccinatedDate String?
+  
+  // Additional Personal Details
+  motherTongue           String?
+  otherLanguage          String?
+  identificationMark     String?
+  height                 String?
+  weight                 String?
+  
+  // Bank Details
+  bankName               String?
+  bankAccountNumber      String?
+  ifscCode               String?
+  bankAddress            String?
+  
+  // Sports Details
+  sportName              String?
+  sportLevel             String?
+  achievementDetails     String?
+  
+  // Administrative Details
+  informationVerified    String?
+  paymentType            String?
+  admittedStatus         String?
+  admissionStatus        String?
+  integratedApplicationId String?
+  
   remarks               String?
   status                String?
   createdAt             DateTime  @default(now())

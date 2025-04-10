@@ -1,113 +1,95 @@
-# PostgreSQL Setup for Sherlock
+# Sherlock - PostgreSQL Database Integration
 
-Follow these steps to set up PostgreSQL for the Sherlock Student Information System.
+This document provides information on the PostgreSQL database integration in the Sherlock student information system using Railway.
 
-## Step 1: Install PostgreSQL
+## Overview
 
-If you haven't already, install PostgreSQL:
-- Windows: Download from [postgresql.org](https://www.postgresql.org/download/windows/)
-- Mac: `brew install postgresql`
-- Linux: `sudo apt install postgresql`
+Sherlock uses a PostgreSQL database hosted on Railway for data storage. The application is configured to connect to this database using the connection string provided by Railway.
 
-Make sure to remember the password you set for the `postgres` superuser!
+## Connection Details
 
-## Step 2: Run the Setup Script
+Railway provides two types of connection URLs:
 
-We've created a setup script to automate the database configuration. Here's how to run it:
-
-### Windows
-
-1. Open Command Prompt or PowerShell as administrator
-2. Navigate to the PostgreSQL bin directory:
+1. **Internal URL** - For use within the Railway environment:
    ```
-   cd "C:\Program Files\PostgreSQL\17\bin"
-   ```
-   (Change the version number if needed)
-
-3. Run the setup script (from your project folder):
-   ```
-   psql -U postgres -f "C:\path\to\Sherlock_pro\scripts\setup-db.sql"
-   ```
-   
-4. Enter your PostgreSQL superuser password when prompted
-
-### Mac/Linux
-
-1. Open Terminal
-2. Run the setup script:
-   ```
-   sudo -u postgres psql -f /path/to/Sherlock_pro/scripts/setup-db.sql
+   postgresql://postgres:******@postgres.railway.internal:5432/railway
    ```
 
-## Step 3: Verify the Connection
+2. **Public URL** - For external connections (local development):
+   ```
+   postgresql://postgres:******@turntable.proxy.rlwy.net:59936/railway
+   ```
 
-After running the script, edit your `.env` file to use:
+## Environment Configuration
 
+To connect to the PostgreSQL database, set the following environment variables:
+
+### For Railway Deployment
+
+In the Railway dashboard, create a new variable:
 ```
-DATABASE_URL="postgresql://abhi:abhi@localhost:5432/postgres"
+DATABASE_URL=${{ Postgres.DATABASE_URL }}
 ```
 
-Then run:
+This uses Railway's built-in environment variable linking feature to automatically use the correct internal connection string.
 
+### For Local Development
+
+In your `.env` or `.env.local` file:
 ```
+DATABASE_URL="postgresql://postgres:password@turntable.proxy.rlwy.net:port/railway"
+```
+
+Use the external/public connection string provided by Railway.
+
+## Database Schema
+
+The database schema is defined in `prisma/schema.prisma`. It includes the following models:
+
+- `Student` - Contains comprehensive student information including personal details, family information, academic records, etc.
+
+## Data Access
+
+The application uses Prisma ORM to interact with the PostgreSQL database. Key files:
+
+- `prisma/schema.prisma` - Defines the database schema
+- `src/app/api/data/route.ts` - API endpoint for fetching student data
+- `prisma/seed.js` - Script for seeding the database with initial data
+
+## Useful Commands
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Push schema changes to database
 npx prisma db push
+
+# Seed the database with initial data
+npm run db:seed
+
+# Open Prisma Studio to view and edit data
+npx prisma studio
+
+# Check database connection
+node scripts/check-db.js
 ```
 
-If successful, you'll see a message about your database being in sync with the schema.
+## Deployment Considerations
 
-## Step 4: Import Student Data
+When deploying to Railway:
 
-Once connected, you can import the student data:
-
-```
-npm run migrate-data
-```
+1. The application will automatically use the internal connection URL
+2. Make sure the `DATABASE_URL` environment variable is correctly set using the Railway linking syntax
+3. For Vercel deployments, add the external PostgreSQL URL to the environment variables
 
 ## Troubleshooting
 
-### Connection Issues
+Common issues:
 
-If you still face connection issues:
-
-1. Check that PostgreSQL is running:
-   - Windows: Check Services (services.msc)
-   - Mac/Linux: `ps aux | grep postgres`
-
-2. Verify your PostgreSQL installation directory:
-   - The default is `C:\Program Files\PostgreSQL\17\bin` on Windows
-   - You may have a different version number
-
-3. Make sure the `postgres` user has the correct password in your command
-
-4. Check the PostgreSQL logs for error messages:
-   - Usually in `C:\Program Files\PostgreSQL\17\data\log` on Windows
-   - `/var/log/postgresql/` on Linux
-
-### Manual Setup
-
-If the script doesn't work, you can perform the steps manually:
-
-1. Connect to PostgreSQL as the superuser:
-   ```
-   psql -U postgres
-   ```
-
-2. Create the 'abhi' user:
-   ```sql
-   CREATE USER abhi WITH PASSWORD 'abhi';
-   ALTER USER abhi WITH LOGIN CREATEDB;
-   ```
-
-3. Grant permissions:
-   ```sql
-   GRANT CONNECT ON DATABASE postgres TO abhi;
-   \c postgres
-   GRANT ALL ON SCHEMA public TO abhi;
-   ```
-
-4. Test the connection:
-   ```
-   psql -U abhi -d postgres
-   ```
+1. **Connection Error**: Check that you're using the correct connection URL for your environment.
+2. **Schema Mismatch**: Run `npx prisma db push` to sync your schema with the database.
+3. **Authentication Error**: Verify your database credentials are correct.
+4. **Data Seeding Issues**: Run the seed script with `npm run db:seed`.
 
 For more detailed PostgreSQL setup information, refer to our [POSTGRESQL-SETUP.md](./POSTGRESQL-SETUP.md) guide. 
