@@ -1,8 +1,10 @@
-# Sherlock - Student Information System
+# Sherlock - Student Information System with OSINT Tools
 
 ![Sherlock Logo](/public/images/sherlock-logo.svg)
 
-A comprehensive student information system with secure data management and modern UI.
+A comprehensive student information system with secure data management, modern UI, and integrated OSINT tools for educational purposes.
+
+> Sherlock includes OSINT tools developed by Abhi
 
 ## Security Features
 
@@ -24,8 +26,8 @@ This application has been configured with security best practices:
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/sherlock-student-system.git
-   cd sherlock-student-system
+   git clone https://github.com/abhishek-mule/Sherlock.git
+   cd Sherlock
    ```
 
 2. Install dependencies:
@@ -69,4 +71,4 @@ The application is designed to keep student data secure:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
