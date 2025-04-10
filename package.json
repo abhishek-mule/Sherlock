@@ -12,7 +12,8 @@
     "prisma:studio": "prisma studio",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
-    "db:reseed": "cross-env FORCE_RESEED=true node prisma/seed.js"
+    "db:reseed": "cross-env FORCE_RESEED=true node prisma/seed.js",
+    "find-student": "node scripts/find-student.js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",

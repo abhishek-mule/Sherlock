@@ -12,6 +12,11 @@ import toast from 'react-hot-toast';
 import { StudentListPopup } from '../components/StudentListPopup';
 import { NotificationsPanel } from '../components/NotificationsPanel';
 
+// Fallback data as a constant to ensure data availability
+const FALLBACK_DATA = `SRNO,REGISTRATION_NO,ENROLLMENT NUMBER,ROLLNO,NAME,FIRSTNAME,MIDDLE NAME,LAST NAME,MOBILE NO.,EMAILID,DOB,GENDER,FATHERNAME,FATHERMOBILE
+1,REG20230001,ENRL20230001,ROLL001,John Demo Smith,John,Demo,Smith,9876543210,john.smith@example.com,2000-01-15,Male,Robert Smith,9876543211
+2,REG20230002,ENRL20230002,ROLL002,Jane Demo Doe,Jane,Demo,Doe,9876543212,jane.doe@example.com,2001-05-20,Female,Michael Doe,9876543213`;
+
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [surname, setSurname] = useState('');
@@ -28,57 +33,26 @@ export default function HomePage() {
     const loadStudents = async () => {
       setIsLoading(true);
       try {
-        // Try multiple ways to load student data
-        console.log("Attempting to load student data...");
+        console.log("Attempting to load student data from API...");
         
-        let csvText = null;
-        let error = null;
+        // Try to use the API with the PostgreSQL database
+        const response = await fetch('/api/data');
         
-        // Try option 1: API route
-        try {
-          console.log("Attempting API route: /api/data");
-          const apiResponse = await fetch('/api/data');
-          if (!apiResponse.ok) throw new Error(`API error! status: ${apiResponse.status}`);
-          csvText = await apiResponse.text();
-          console.log("Successfully loaded data from API route");
-        } catch (err) {
-          console.warn("API route failed:", err);
-          error = err;
-          
-          // Try option 2: Public directory
-          try {
-            console.log("Attempting public path: /data/students.csv");
-            const publicResponse = await fetch('/data/students.csv');
-            if (!publicResponse.ok) throw new Error(`Public path error! status: ${publicResponse.status}`);
-            csvText = await publicResponse.text();
-            console.log("Successfully loaded data from public path");
-          } catch (err2) {
-            console.warn("Public path failed:", err2);
-            error = err2;
-            
-            // Try option 3: Static path in Vercel
-            try {
-              console.log("Attempting static path: /public/data/students.csv");
-              const staticResponse = await fetch('/public/data/students.csv');
-              if (!staticResponse.ok) throw new Error(`Static path error! status: ${staticResponse.status}`);
-              csvText = await staticResponse.text();
-              console.log("Successfully loaded data from static path");
-            } catch (err3) {
-              console.warn("Static path failed:", err3);
-              error = err3;
-            }
-          }
+        if (!response.ok) {
+          throw new Error(`API error! status: ${response.status}`);
         }
         
-        if (!csvText) {
-          console.warn("All data loading methods failed, using minimal fallback data");
-          // Minimal fallback data as a CSV string
-          csvText = `SRNO,REGISTRATION_NO,ENROLLMENT NUMBER,ROLLNO,NAME,FIRSTNAME,MIDDLE NAME,LAST NAME,MOBILE NO.,EMAILID,DOB,GENDER,FATHERNAME,FATHERMOBILE
-1,REG20230001,ENRL20230001,ROLL001,John Demo Smith,John,Demo,Smith,9876543210,john.smith@example.com,2000-01-15,Male,Robert Smith,9876543211
-2,REG20230002,ENRL20230002,ROLL002,Jane Demo Doe,Jane,Demo,Doe,9876543212,jane.doe@example.com,2001-05-20,Female,Michael Doe,9876543213`;
-          
-          toast.error("Using demo data. Server data couldn't be loaded.");
+        const responseData = await response.json();
+        console.log("Successfully loaded data from API");
+        
+        if (responseData.data && Array.isArray(responseData.data)) {
+          setStudents(responseData.data);
+          setIsLoading(false);
+          return;
         }
+        
+        // If we got CSV data instead of JSON, parse it
+        const csvText = await response.text();
         
         // Parse the CSV data
         console.log("Parsing CSV data...");
@@ -188,7 +162,10 @@ export default function HomePage() {
   }, []);
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim() && !surname.trim()) {
+      toast.error('Please enter a search term');
+      return;
+    }
 
     setIsSearching(true);
     try {
@@ -203,50 +180,98 @@ export default function HomePage() {
         setIsSearching(false);
         return;
       }
-      
-      const foundStudents = students.filter(student => {
-        // Extract name parts for more flexible search
-        const nameParts = student.fullName ? student.fullName.toLowerCase().split(/\s+/) : [];
-        const fatherNameParts = [
-          student.fatherName, 
-          student.fatherMiddleName, 
-          student.fatherLastName
-        ].filter(Boolean).join(' ').toLowerCase().split(/\s+/);
-        
-        const searchableFields = [
-          ...nameParts,
-          student.enrollmentNumber,
-          student.registrationNumber,
-          student.rollNumber,
-          student.emailId,
-          student.mobileNumber,
-          student.birthPlace?.toLowerCase(),
-          student.dateOfBirth,
-          student.subCaste?.toLowerCase(),
-          ...fatherNameParts
-        ].map(field => field?.toLowerCase() || '');
 
-        // Check if any of the search terms match any of the searchable fields
-        // For single term searches, partial matches are fine
+      console.log('Searching for:', allSearchTerms);
+      console.log('Total students in data:', students.length);
+      
+      // More flexible search that handles various field formats
+      const foundStudents = students.filter(student => {
+        // Skip if student is null or undefined
+        if (!student) return false;
+        
+        // Create an array of all searchable fields from the student record
+        // Convert all values to lowercase strings for case-insensitive comparison
+        const fieldsToSearch = [
+          // Name fields - both composite and individual parts
+          student.fullName?.toLowerCase() || '',
+          student.firstName?.toLowerCase() || '',
+          student.middleName?.toLowerCase() || '',
+          student.lastName?.toLowerCase() || '',
+          
+          // IDs and contact info
+          student.enrollmentNumber?.toLowerCase() || '',
+          student.registrationNumber?.toLowerCase() || '',
+          // Use safe property access in case database model uses different property names
+          (student as any).registrationNo?.toLowerCase() || '',
+          student.rollNumber?.toLowerCase() || '',
+          student.emailId?.toLowerCase() || '',
+          student.mobileNumber?.toString().toLowerCase() || '',
+          student.alternateMobileNumber?.toString().toLowerCase() || '',
+          
+          // Personal info
+          student.dateOfBirth?.toLowerCase() || '',
+          student.birthPlace?.toLowerCase() || '',
+          student.gender?.toLowerCase() || '',
+          student.nationality?.toLowerCase() || '',
+          student.bloodGroup?.toLowerCase() || '',
+          student.religion?.toLowerCase() || '',
+          student.category?.toLowerCase() || '',
+          student.subCaste?.toLowerCase() || '',
+          // Use safe property access for potentially different field names
+          (student as any).subcategory?.toLowerCase() || '',
+          student.aadharNumber?.toString().toLowerCase() || '',
+          
+          // Father's info
+          student.fatherName?.toLowerCase() || '',
+          // Use safe property access for potentially different field names
+          (student as any).fatherFirstName?.toLowerCase() || '',
+          student.fatherMiddleName?.toLowerCase() || '',
+          student.fatherLastName?.toLowerCase() || '',
+          student.fatherMobileNumber?.toString().toLowerCase() || '',
+          
+          // Mother's info
+          student.motherName?.toLowerCase() || '',
+          student.motherMobileNumber?.toString().toLowerCase() || '',
+          
+          // Academic info
+          student.collegeName?.toLowerCase() || '',
+          student.branch?.toLowerCase() || '',
+          student.degree?.toLowerCase() || '',
+          student.admissionCategory?.toLowerCase() || '',
+          student.programLevel?.toLowerCase() || ''
+        ];
+        
+        // For debugging
+        if (fieldsToSearch.some(field => field.includes('borkar'))) {
+          console.log('Found potential match:', student.fullName, student.enrollmentNumber);
+        }
+        
+        // Now check if ANY search term matches ANY field
+        // This is a more lenient approach than requiring multiple matches
         if (allSearchTerms.length === 1) {
+          // For single-term searches, any match is sufficient
           const term = allSearchTerms[0];
-          return searchableFields.some(field => field.includes(term));
-        } 
-        
-        // For multi-term searches, try to match all terms across any fields
-        // Count how many terms were matched
-        const matchedTerms = allSearchTerms.filter(term => 
-          searchableFields.some(field => field.includes(term))
-        );
-        
-        // Return true if at least half of the terms were matched
-        return matchedTerms.length >= Math.max(1, Math.floor(allSearchTerms.length / 2));
+          return fieldsToSearch.some(field => field.includes(term));
+        } else {
+          // For multi-term searches, count matching terms
+          // A student matches if ANY term matches ANY field
+          // This is more lenient than requiring ALL terms to match
+          const matchCount = allSearchTerms.filter(term => 
+            fieldsToSearch.some(field => field.includes(term))
+          ).length;
+          
+          // Even a single match is valid (more lenient)
+          return matchCount > 0;
+        }
       });
 
+      console.log(`Search found ${foundStudents.length} matching students`);
+      
       if (foundStudents.length > 0) {
         // If only one student found, display it directly
         if (foundStudents.length === 1) {
           setStudentData(foundStudents[0]);
+          toast.success(`Found student: ${foundStudents[0].fullName}`);
         } else {
           // For multiple matches, show the popup with all matches
           setSearchResults(foundStudents);
@@ -257,7 +282,10 @@ export default function HomePage() {
         }
       } else {
         setStudentData(null);
-        toast.error('No student found with the provided details');
+        toast.error('No student found. Try using enrollment number or full name.', {
+          duration: 5000, // Show for 5 seconds
+        });
+        console.log('Search terms that failed:', allSearchTerms);
       }
     } catch (error) {
       console.error('Error searching student data:', error);
@@ -422,7 +450,16 @@ export default function HomePage() {
           <StudentDetails student={studentData} />
         ) : searchQuery && !isSearching && (
           <div className="max-w-4xl mx-auto text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
-            <p className="text-gray-600 dark:text-gray-400">No student found with the provided details.</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-2">No student found with the provided details.</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
+              Try searching with: 
+              <ul className="mt-2 list-disc list-inside">
+                <li>Enrollment Number (e.g., ENR12345)</li>
+                <li>Full Name (e.g., BORKAR ABHA)</li>
+                <li>Registration Number</li>
+                <li>Mobile Number</li>
+              </ul>
+            </p>
           </div>
         )}
         
