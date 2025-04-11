@@ -107,12 +107,76 @@ export async function GET(request: NextRequest) {
       console.error('Database error in search:', dbError);
       
       // Fallback for search with no database access
+      console.log('Database search unavailable. Using fallback data.');
+      
+      // Provide a minimal fallback with a few sample students
+      const fallbackStudents = [
+        {
+          id: 1,
+          fullName: "CHOUDHARI TEJAS ATUL",
+          firstName: "tejas",
+          middleName: "atul",
+          lastName: "choudhari",
+          enrollmentNumber: "230110683",
+          rollNumber: "254",
+          mobileNumber: "9356802767",
+          emailId: "tejaschoudhari008@gmail.com",
+          dateOfBirth: null,
+          birthPlace: "NAGPUR",
+          gender: "MALE",
+          nationality: "INDIAN",
+          bloodGroup: "O-",
+          religion: "HINDU",
+          category: "OBC",
+          branch: "Computer Technology",
+          semester: "3",
+          admissionDate: "Saturday, 5 August, 2023",
+          degree: "B.Tech"
+        },
+        {
+          id: 2,
+          fullName: "DEMO STUDENT",
+          firstName: "DEMO",
+          middleName: "",
+          lastName: "STUDENT",
+          enrollmentNumber: "123456789",
+          rollNumber: "101",
+          mobileNumber: "9876543210",
+          emailId: "demo@example.com",
+          dateOfBirth: null,
+          birthPlace: "MUMBAI",
+          gender: "FEMALE",
+          nationality: "INDIAN",
+          bloodGroup: "B+",
+          religion: "HINDU",
+          category: "GENERAL",
+          branch: "Information Technology",
+          semester: "5",
+          admissionDate: "Monday, 1 August, 2022",
+          degree: "B.Tech"
+        }
+      ];
+      
+      // Filter the fallback data to match the search query
+      const filteredStudents = fallbackStudents.filter(student => {
+        // Check for match in any searchable field
+        const matchesQuery = query ? 
+          Object.values(student).some(val => 
+            val && val.toString().toLowerCase().includes(query.toLowerCase())
+          ) : true;
+          
+        const matchesSurname = surname ?
+          (student.lastName && student.lastName.toLowerCase().includes(surname.toLowerCase())) : true;
+          
+        return matchesQuery && matchesSurname;
+      });
+      
       return NextResponse.json({
-        total: 0,
+        total: filteredStudents.length,
         page,
         limit,
-        data: [],
-        message: "Database search unavailable. Please try again later."
+        data: filteredStudents,
+        message: "Using fallback student data. Database search unavailable."
       });
     }
   } catch (error) {
