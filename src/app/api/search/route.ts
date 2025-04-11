@@ -1,18 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
 
+// Global prisma client to avoid connection overhead
+let globalPrisma: PrismaClient | undefined
+
 // Don't initialize Prisma at the module level for build
 // Instead, create a function to get the Prisma client
 function getPrismaClient() {
-  console.log("Initializing Prisma client with connection string...");
-  // Log a sanitized version of the connection string for debugging
-  const dbUrl = process.env.DATABASE_URL || 'No database URL found in environment';
-  const sanitizedUrl = dbUrl.replace(/\/\/.*?@/, '//[CREDENTIALS_HIDDEN]@');
-  console.log(`Database URL format: ${sanitizedUrl}`);
+  // In development, initialize a new client for each request
+  if (process.env.NODE_ENV === 'development') {
+    console.log("Development mode: Creating new Prisma client");
+    return new PrismaClient({
+      log: ['query', 'info', 'warn', 'error'],
+    });
+  }
   
-  return new PrismaClient({
-    log: ['query', 'info', 'warn', 'error'],
-  });
+  // In production, reuse the client to reduce connection overhead
+  if (!globalPrisma) {
+    console.log("Production mode: Initializing global Prisma client");
+    // Log a sanitized version of the connection string for debugging
+    const dbUrl = process.env.DATABASE_URL || 'No database URL found in environment';
+    const sanitizedUrl = dbUrl.replace(/\/\/.*?@/, '//[CREDENTIALS_HIDDEN]@');
+    console.log(`Database URL format: ${sanitizedUrl}`);
+    
+    globalPrisma = new PrismaClient({
+      log: ['error', 'warn'],
+      // Use datasources for connection configuration
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
+  } else {
+    console.log("Production mode: Reusing existing Prisma client");
+  }
+  
+  return globalPrisma;
 }
 
 export async function GET(request: NextRequest) {
